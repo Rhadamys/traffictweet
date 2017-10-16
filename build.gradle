@@ -1,0 +1,51 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.7.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'war'
+
+group = 'cl.usach'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	providedRuntime
+}
+
+dependencies {
+	// Dependencias de Spring
+	compile('org.springframework.boot:spring-boot-starter-data-jpa')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	providedRuntime('org.springframework.boot:spring-boot-starter-tomcat')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+
+	// Driver MongoDB
+	// compile('org.springframework.boot:spring-boot-starter-data-mongodb')
+
+	// Driver Neo4J
+	// compile('org.springframework.boot:spring-boot-starter-data-neo4j')
+	// compile group: 'org.neo4j', name: 'neo4j-ogm-embedded-driver', version: '3.0.0'
+
+	// Driver MySQL
+	runtime('mysql:mysql-connector-java')
+
+	// Dependencias de Lucene
+	compile('org.apache.lucene:lucene-analyzers-common:7.0.1')
+	compile('org.apache.lucene:lucene-core:7.0.1')
+	compile('org.apache.lucene:lucene-queryparser:7.0.1')
+}
