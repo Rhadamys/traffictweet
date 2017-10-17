@@ -1,5 +1,7 @@
 package cl.usach.traffictweet;
 
+import cl.usach.traffictweet.twitter.Lucene;
+import cl.usach.traffictweet.twitter.TwitterStreaming;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
