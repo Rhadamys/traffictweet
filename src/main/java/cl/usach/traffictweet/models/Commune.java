@@ -5,7 +5,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "communes")
-@NamedQuery(name = "Commune.findAll", query = "SELECT c FROM Commune c")
+@NamedNativeQueries({
+		@NamedNativeQuery(name = "Commune.findAll", query = "SELECT c FROM Commune c")})
 public class Commune {
 	@Id
 	@Column(name = "id", unique = true, nullable = false)
@@ -20,7 +21,9 @@ public class Commune {
 
 	public Commune() {
 	}
-
+	public Commune(String name){
+		this.name=name;
+	}
 	public long getCommuneId(){
 		return communeId;
 	}

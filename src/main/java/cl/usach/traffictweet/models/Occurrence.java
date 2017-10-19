@@ -5,12 +5,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "occurrences")
-@NamedQuery(name = "Occurrence.findAll", query = "SELECT o FROM Occurrence o")
+@NamedNativeQueries({
+		@NamedNativeQuery(name = "Occurrence.findAll", query = "SELECT o FROM Occurrence o")})
 public class Occurrence {
 	@Id
 	@Column(name = "id", unique = true, nullable = false)
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long occurrenceId;
+    private long id;
 
 	@Column(name = "name", nullable = false)
 	private String name;
@@ -35,10 +36,10 @@ public class Occurrence {
 	}
 
     public long getOccurrenceId(){
-		return occurrenceId;
+		return id;
 	}
 	public void setOccurrenceId(long occurrenceId){
-		this.occurrenceId = occurrenceId;
+		this.id = occurrenceId;
 	}
 	
 	public String getName(){

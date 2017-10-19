@@ -5,29 +5,33 @@ import java.util.Set;
 
 @Entity
 @Table(name = "categories")
-@NamedQuery(name = "Category.findAll", query = "SELECT c FROM Category c")
+@NamedNativeQueries({
+        @NamedNativeQuery(name = "Category.findAll", query = "SELECT c FROM Category c")}
+)
 public class Category {
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long categoryId;
+    private long id;
 
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "categories")
     private Set<Occurrence> occurrences;
-    
-    public Category() {
+    public Category(){
 
+    }
+    public Category(String name) {
+        this.name=name;
     }
 
     public long getCategoryId() {
-        return categoryId;
+        return id;
     }
 
     public void setCategoryId(long categoryId) {
-        this.categoryId = categoryId;
+        this.id = categoryId;
     }
 
     public String getName() {
