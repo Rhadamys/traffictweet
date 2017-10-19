@@ -5,7 +5,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "keywords")
-@NamedQuery(name = "Keyword.findAll", query = "SELECT k FROM Keyword k")
+@NamedNativeQueries({
+        @NamedNativeQuery(name = "Keyword.findAll", query = "SELECT k FROM Keyword k")})
 public class Keyword {
     @Id
     @Column(name = "id", unique = true, nullable = false)
@@ -17,7 +18,9 @@ public class Keyword {
 
     public Keyword() {
     }
-
+    public Keyword(String name){
+        this.name=name;
+    }
     public long getKeywordId() {
         return keywordId;
     }
