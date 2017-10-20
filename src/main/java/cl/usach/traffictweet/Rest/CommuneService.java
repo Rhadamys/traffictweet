@@ -1,6 +1,7 @@
-package cl.usach.traffictweet;
+package cl.usach.traffictweet.Rest;
 
-import cl.usach.traffictweet.models.Commune;
+import cl.usach.traffictweet.Models.Commune;
+import cl.usach.traffictweet.Repositories.CommuneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

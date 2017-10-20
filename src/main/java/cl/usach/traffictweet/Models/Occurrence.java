@@ -1,6 +1,7 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.Models;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Set;
 
 @Entity
@@ -11,7 +12,7 @@ public class Occurrence {
 	@Id
 	@Column(name = "id", unique = true, nullable = false)
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
 
 	@Column(name = "name", nullable = false)
 	private String name;
@@ -30,18 +31,25 @@ public class Occurrence {
 	@JoinTable(name = "categories_occurrences",
 			joinColumns = @JoinColumn(name = "occurrence_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
-	private Set<Category> categories; 
+	private Set<Category> categories;
+
+	@Column(name="created_at", nullable=false)
+	private Timestamp createdAt;
+
+	@Column(name="updated_at", nullable=false)
+	private Timestamp updatedAt;
 
 	public Occurrence() {
 	}
 
-    public long getOccurrenceId(){
+	public int getId() {
 		return id;
 	}
-	public void setOccurrenceId(long occurrenceId){
-		this.id = occurrenceId;
+
+	public void setId(int id) {
+		this.id = id;
 	}
-	
+
 	public String getName(){
 		return name;
 	}
@@ -63,19 +71,35 @@ public class Occurrence {
 		this.content = content;
 	}
 
-    public Commune getCommunes() {
-        return commune;
-    }
-	public void setCommunes(Commune commune) {
-        this.commune = commune;
-    }
+	public Commune getCommune() {
+		return commune;
+	}
 
-    public Set<Category> getCategories() {
+	public void setCommune(Commune commune) {
+		this.commune = commune;
+	}
+
+	public Set<Category> getCategories() {
         return categories;
     }
     public void setCategories(Set<Category> categories) {
         this.categories = categories;
     }
 
+	public Timestamp getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Timestamp createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Timestamp getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Timestamp updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 }
 

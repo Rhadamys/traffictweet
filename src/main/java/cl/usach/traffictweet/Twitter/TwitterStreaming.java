@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.twitter;
+package cl.usach.traffictweet.Twitter;
 
 import java.io.IOException;
 import java.util.HashSet;

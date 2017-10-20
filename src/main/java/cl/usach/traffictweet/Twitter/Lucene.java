@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.twitter;
+package cl.usach.traffictweet.Twitter;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;

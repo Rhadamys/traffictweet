@@ -1,6 +1,6 @@
-package cl.usach.traffictweet.repositories;
+package cl.usach.traffictweet.Repositories;
 
-import cl.usach.traffictweet.models.Occurrence;
+import cl.usach.traffictweet.Models.Occurrence;
 import org.springframework.data.repository.CrudRepository;
 
 public interface OccurrenceRepository extends CrudRepository<Occurrence,Long>{
