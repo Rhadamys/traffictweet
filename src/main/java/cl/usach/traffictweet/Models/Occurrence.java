@@ -14,8 +14,14 @@ public class Occurrence {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-	@Column(name = "name", nullable = false)
-	private String name;
+	@Column(name = "username", nullable = false)
+	private String username;
+
+	@Column(name = "account_id", nullable = false)
+	private long account_id;
+
+	@Column(name = "image", nullable = false)
+	private String image;
 
 	@Column(name = "location", nullable = false)
 	private String location;
@@ -42,6 +48,16 @@ public class Occurrence {
 	public Occurrence() {
 	}
 
+	public Occurrence(String username, long account_id, String image, String location, String content, Timestamp createdAt, Timestamp updatedAt) {
+		this.username = username;
+		this.account_id = account_id;
+		this.image = image;
+		this.location = location;
+		this.content = content;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
+
 	public int getId() {
 		return id;
 	}
@@ -51,10 +67,10 @@ public class Occurrence {
 	}
 
 	public String getName(){
-		return name;
+		return username;
 	}
 	public void setName(String name) {
-		this.name = name;
+		this.username = name;
 	}
 
 	public String getLocation(){

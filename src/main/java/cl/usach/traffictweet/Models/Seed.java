@@ -3,9 +3,11 @@ package cl.usach.traffictweet.Models;
 import cl.usach.traffictweet.Repositories.CategoryRepository;
 import cl.usach.traffictweet.Repositories.CommuneRepository;
 import cl.usach.traffictweet.Repositories.KeywordRepository;
+import cl.usach.traffictweet.Twitter.Lucene;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.sql.Timestamp;
+import java.util.Iterator;
 
 public class Seed {
     public Seed() {
@@ -70,5 +72,14 @@ public class Seed {
         repositoryCom.save(new Commune("Puente Alto", timestamp, timestamp));
         repositoryCom.save(new Commune("Pirque", timestamp, timestamp));
         repositoryCom.save(new Commune("San José de Maipo", timestamp, timestamp));
+
+        Iterable<Keyword> Keywords = repositoryK.findAll();
+        Iterator it = Keywords.iterator();
+        while (it.hasNext()) {
+            Keyword keyword = (Keyword) it.next();
+            System.out.println(keyword.getName());
+            new Lucene().buscarIndice(keyword.getName(), context);
+
+        }
     }
 }

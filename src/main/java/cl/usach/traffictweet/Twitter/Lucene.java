@@ -1,5 +1,6 @@
 package cl.usach.traffictweet.Twitter;
 
+import cl.usach.traffictweet.Repositories.OccurrenceRepository;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -19,11 +20,16 @@ import org.bson.Document;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import cl.usach.traffictweet.Models.*;
+import cl.usach.traffictweet.Repositories.OccurrenceRepository;
+import org.springframework.context.ConfigurableApplicationContext;
+
 public class Lucene {
-    private Lucene() { }
+    public Lucene() { }
 
     private void crearIndice() {
         try {
@@ -71,13 +77,14 @@ public class Lucene {
 
     }
 
-    public  List<org.apache.lucene.document.Document> buscarIndice(String query){
+    public  List<org.apache.lucene.document.Document> buscarIndice(String query, ConfigurableApplicationContext context){
+        OccurrenceRepository repositoryO = context.getBean(OccurrenceRepository.class);
         List<org.apache.lucene.document.Document> listDocuments = new ArrayList<org.apache.lucene.document.Document>();
         try{
             IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("indice/")));
             IndexSearcher searcher = new IndexSearcher(reader);
             StandardAnalyzer analyzer = new StandardAnalyzer();
-            TopScoreDocCollector collector = TopScoreDocCollector.create(10);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(100);
 
             Query q = new QueryParser("tweet", analyzer).parse(query);
             searcher.search(q, collector);
@@ -93,6 +100,8 @@ public class Lucene {
                 System.out.println("Location: " + d.get("location"));
                 System.out.println("Image: " + d.get("image"));
                 System.out.println("Text: " + d.get("tweet"));
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                repositoryO.save(new Occurrence(d.get("user"), Long.parseLong(d.get("id")), d.get("image"), d.get("location"), d.get("tweet"), timestamp, timestamp));
             }
             reader.close();
 
