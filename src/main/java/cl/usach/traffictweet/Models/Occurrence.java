@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -31,12 +33,14 @@ public class Occurrence {
 
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "commune_id")
+	@JsonIgnore
 	private Commune commune;
 
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "categories_occurrences",
 			joinColumns = @JoinColumn(name = "occurrence_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
+	@JsonIgnore
 	private Set<Category> categories;
 
 	@Column(name="created_at", nullable=false)
@@ -98,9 +102,9 @@ public class Occurrence {
 	public Set<Category> getCategories() {
         return categories;
     }
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
-    }
+	public void addCategory(Category category) {
+		this.categories.add(category);
+	}
 
 	public Timestamp getCreatedAt() {
 		return createdAt;

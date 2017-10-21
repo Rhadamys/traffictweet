@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -20,9 +22,11 @@ public class Category {
 
     @ManyToMany(mappedBy = "categories",
             cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Occurrence> occurrences;
 
     @OneToMany(mappedBy= "category", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Keyword> keywords;
 
     @Column(name="created_at", nullable=false)
@@ -62,8 +66,8 @@ public class Category {
         return occurrences;
     }
 
-    public void setOccurrences(Set<Occurrence> occurrences) {
-        this.occurrences = occurrences;
+    public void addOccurrence(Occurrence occurrence) {
+        this.occurrences.add(occurrence);
     }
 
     public Set<Keyword> getKeywords() {

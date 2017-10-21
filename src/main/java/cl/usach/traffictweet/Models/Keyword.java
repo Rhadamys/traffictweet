@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -18,6 +20,7 @@ public class Keyword {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonIgnore
     private Category category;
 
     @Column(name="created_at", nullable=false)

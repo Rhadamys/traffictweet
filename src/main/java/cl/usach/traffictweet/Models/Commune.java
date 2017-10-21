@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -18,6 +20,7 @@ public class Commune {
 	private String name;
 
 	@OneToMany(mappedBy = "commune", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Set<Occurrence> occurrences;
 
 	@Column(name="created_at", nullable=false)
@@ -53,6 +56,10 @@ public class Commune {
 
 	public Set<Occurrence> getOccurrences() {
 		return occurrences;
+	}
+
+	public void addOccurrence(Occurrence occurrence) {
+		this.occurrences.add(occurrence);
 	}
 
 	public void setOccurrences(Set<Occurrence> occurrences) {
