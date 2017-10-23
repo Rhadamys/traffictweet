@@ -1,0 +1,13 @@
+  GNU nano 2.7.4        Fichero: /tmp/crontab.4qekMs/crontab                    
+
+# Instrucciones
+
+# Ejecutar crontab -e en terminal y copiar la línea de abajo en el editor de texto y guardar
+
+# Formato cron: 
+
+# minuto (0-59) hora (0-23) día_del_mes (1-31) mes (1-12) día_de_la_semana (0-6, empezando del domingo; o 1-7 empezando del lunes, depende de la distribución) <ruta_del_archivo/programa/script>)
+
+0 22 * * * /home/zlightrider/Documentos/Taller\ de\ Base\ de\ Datos/cron.sh
+
+
