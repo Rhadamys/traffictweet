@@ -1,0 +1,3 @@
+Si se desea dejar programada el bootrun de la aplicación...
+
+Antes de ejecutar las instrucciones para construir la aplicación, editar los archivos 'cron.txt' y 'cron.sh' siguiendo las instrucciones que están ahí.

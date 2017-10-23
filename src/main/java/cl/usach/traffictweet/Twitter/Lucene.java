@@ -20,6 +20,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
