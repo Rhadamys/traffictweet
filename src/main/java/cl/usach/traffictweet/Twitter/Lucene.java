@@ -27,10 +27,13 @@ import java.util.logging.Logger;
 
 import cl.usach.traffictweet.Models.*;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Lucene {
     public Lucene() { }
-
+    @Scheduled(cron = "0 0 * * * *")
     private void crearIndice() {
         try {
             Directory dir = FSDirectory.open(Paths.get("indice/"));
