@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 
+import org.springframework.stereotype.Component;
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -18,8 +19,11 @@ import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document; 
 import com.mongodb.MongoClient; 
-import com.mongodb.MongoCredential; 
+import com.mongodb.MongoCredential;
 
+import javax.annotation.PostConstruct;
+
+@Component
 public class TwitterStreaming {
 	private final TwitterStream twitterStream;
 	private Set<String> keywords;
@@ -39,6 +43,7 @@ public class TwitterStreaming {
 		}
 	}
 
+	@PostConstruct
 	private void init() {
 		StatusListener listener = new StatusListener() {
 

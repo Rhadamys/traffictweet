@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div class="col-md-8">
+        <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default" style="height: 80vh">
                 <div class="panel-body">
                     <b style="padding-right: 1em; margin-right: 1em; border-right: 1px solid #bbbbbb">Hoy</b>
@@ -9,12 +9,6 @@
                     Otros: 17&ensp;&ensp;
                 </div>
                 <div id="map" class="panel-body" style="height: 71vh"/>
-            </div>
-        </div>
-        <div class="col-md-4" style="border: 1px solid #bbbbbb; background: #efefef; overflow-y: scroll; height: 80vh">
-            <h3 class="text-center">Últimos tweets</h3>
-            <div v-for="tweet in tweets">
-                <tweet v-bind="tweet"></tweet>
             </div>
         </div>
     </div>
