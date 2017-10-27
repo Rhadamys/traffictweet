@@ -4,24 +4,26 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Set;
+
 
 @Entity
-@Table(name = "keywords")
+@Table(name = "streets")
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Keyword.findAll", query = "SELECT k FROM Keyword k")})
-public class Keyword {
+        @NamedNativeQuery(name = "Street.findAll", query = "SELECT s FROM Street s")})
+public class Street {
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", unique = false, nullable = false)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "commune_id")
     @JsonIgnore
-    private Category category;
+    private Commune commune;
 
     @Column(name="created_at", nullable=false)
     private Timestamp createdAt;
@@ -29,14 +31,23 @@ public class Keyword {
     @Column(name="updated_at", nullable=false)
     private Timestamp updatedAt;
 
-    public Keyword() {
+    public Street() {
     }
 
-    public Keyword(String name, Timestamp createdAt, Timestamp updatedAt, Category category){
+    public Street(String name, Timestamp createdAt, Timestamp updatedAt, Commune commune){
         this.name=name;
         this.createdAt=createdAt;
         this.updatedAt=updatedAt;
-        this.category=category;
+        this.commune=commune;
+
+    }
+
+    public Commune getCommune() {
+        return commune;
+    }
+
+    public void setCommune(Commune commune) {
+        this.commune = commune;
     }
 
     public int getId() {
@@ -54,15 +65,6 @@ public class Keyword {
     public void setName(String name) {
         this.name = name;
     }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -79,3 +81,4 @@ public class Keyword {
         this.updatedAt = updatedAt;
     }
 }
+

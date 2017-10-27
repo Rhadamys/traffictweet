@@ -1,100 +1,155 @@
 package cl.usach.traffictweet.Models;
 
-import cl.usach.traffictweet.Repositories.CategoryRepository;
-import cl.usach.traffictweet.Repositories.CommuneRepository;
-import cl.usach.traffictweet.Repositories.KeywordRepository;
-import cl.usach.traffictweet.Repositories.OccurrenceRepository;
+import cl.usach.traffictweet.Repositories.*;
 import cl.usach.traffictweet.Twitter.Lucene;
 import org.apache.lucene.document.Document;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import javax.validation.constraints.Null;
+import java.io.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Seed {
     public Seed() {
 
     }
+
+    public void initStreet(ConfigurableApplicationContext context){
+        StreetRepository repositorySt = context.getBean(StreetRepository.class);
+        CommuneRepository communeRepository = context.getBean(CommuneRepository.class);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        String csvFile = "callesYcomunas.csv";
+        BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = ";";
+        try {
+            br = new BufferedReader(new FileReader(csvFile));
+            while ((line = br.readLine()) != null) {
+                String[] datos = line.split(cvsSplitBy);
+
+                if (datos.length == 2){
+                    Iterable<Commune> communes = communeRepository.findByName(datos[1]);
+                    for (Commune commune: communes) {
+                        repositorySt.save(new Street(datos[0], timestamp, timestamp, commune));
+                    }
+
+                }
+                else {
+                    System.out.println("calle eliminada");
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+    }
+
+    public void initCommunes(ConfigurableApplicationContext context){
+
+        CommuneRepository repositoryCom = context.getBean(CommuneRepository.class);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        String csvFile = "comunas.csv";
+        BufferedReader br = null;
+        String line = "";
+        String cvsSplitBy = ";";
+        try {
+            br = new BufferedReader(new FileReader(csvFile));
+            while ((line = br.readLine()) != null) {
+                String[] datos = line.split(cvsSplitBy);
+                repositoryCom.save(new Commune(datos[0], timestamp, timestamp));
+                System.out.println(datos[0]);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void init(ConfigurableApplicationContext context) {
         CategoryRepository repositoryC = context.getBean(CategoryRepository.class);
         KeywordRepository repositoryK = context.getBean(KeywordRepository.class);
-        CommuneRepository repositoryCom = context.getBean(CommuneRepository.class);
         OccurrenceRepository repositoryO = context.getBean(OccurrenceRepository.class);
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        repositoryC.save(new Category("Congestion",timestamp,timestamp));
-        repositoryC.save(new Category("Incidente",timestamp,timestamp));
-        repositoryC.save(new Category("Desvíos",timestamp,timestamp));
-        repositoryC.save(new Category("Calle cerrada",timestamp,timestamp));
-        repositoryC.save(new Category("Accidente",timestamp,timestamp));
-        repositoryC.save(new Category("Varios",timestamp,timestamp));
+        Category congestion=(new Category("Congestion",timestamp,timestamp));
+        Category incidente=(new Category("Incidente",timestamp,timestamp));
+        Category desvios=(new Category("Desvíos",timestamp,timestamp));
+        Category calle=(new Category("Calle cerrada",timestamp,timestamp));
+        Category accidente=(new Category("Accidente",timestamp,timestamp));
+        Category varios=(new Category("Varios",timestamp,timestamp));
 
-        repositoryK.save(new Keyword("Taco",timestamp,timestamp));
-        repositoryK.save(new Keyword("Accidente",timestamp,timestamp));
-        repositoryK.save(new Keyword("Choque",timestamp,timestamp));
-        repositoryK.save(new Keyword("Desvío",timestamp,timestamp));
-        repositoryK.save(new Keyword("Intersección",timestamp,timestamp));
-        repositoryK.save(new Keyword("Calle",timestamp,timestamp));
-        repositoryK.save(new Keyword("Comuna",timestamp,timestamp));
-        repositoryK.save(new Keyword("Atochamiento",timestamp,timestamp));
 
-        repositoryCom.save(new Commune("Cerrillos", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Reina", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pudahuel", timestamp, timestamp));
-        repositoryCom.save(new Commune("Cerro Navia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Las Condes", timestamp, timestamp));
-        repositoryCom.save(new Commune("Quilicura", timestamp, timestamp));
-        repositoryCom.save(new Commune("Conchalí", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Barnechea", timestamp, timestamp));
-        repositoryCom.save(new Commune("Quinta Normal", timestamp, timestamp));
-        repositoryCom.save(new Commune("El Bosque", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Espejo", timestamp, timestamp));
-        repositoryCom.save(new Commune("Recoleta", timestamp, timestamp));
-        repositoryCom.save(new Commune("Estación Central", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Prado", timestamp, timestamp));
-        repositoryCom.save(new Commune("Renca", timestamp, timestamp));
-        repositoryCom.save(new Commune("Huechuraba", timestamp, timestamp));
-        repositoryCom.save(new Commune("Macul", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Miguel", timestamp, timestamp));
-        repositoryCom.save(new Commune("Independencia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Maipú", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Joaquín", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Cisterna", timestamp, timestamp));
-        repositoryCom.save(new Commune("Ñuñoa", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Ramón", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Florida", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pedro Aguirre Cerda", timestamp, timestamp));
-        repositoryCom.save(new Commune("Santiago", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Pintana", timestamp, timestamp));
-        repositoryCom.save(new Commune("Peñalolén", timestamp, timestamp));
-        repositoryCom.save(new Commune("Vitacura", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Granja", timestamp, timestamp));
-        repositoryCom.save(new Commune("Providencia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Padre Hurtado", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Bernardo", timestamp, timestamp));
-        repositoryCom.save(new Commune("Puente Alto", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pirque", timestamp, timestamp));
-        repositoryCom.save(new Commune("San José de Maipo", timestamp, timestamp));
 
-        List<Document> documents = new Lucene().filtrarTweets(context);
-        for(Document document: documents) {
-            String contenido = document.get("text");
-            String url = "";
-            int idx = contenido.indexOf("https://");
-            if(idx != -1) {
-                url = contenido.substring(idx, contenido.length());
-                contenido = contenido.substring(0, idx - 1);
+        repositoryC.save(congestion);
+        repositoryC.save(incidente);
+        repositoryC.save(desvios);
+        repositoryC.save(calle);
+        repositoryC.save(accidente);
+        repositoryC.save(varios);
+
+        repositoryK.save(new Keyword("Taco",timestamp,timestamp,congestion));
+        repositoryK.save(new Keyword("Accidente",timestamp,timestamp,congestion));
+        repositoryK.save(new Keyword("Choque",timestamp,timestamp,accidente));
+        repositoryK.save(new Keyword("Desvío",timestamp,timestamp,desvios));
+        repositoryK.save(new Keyword("Intersección",timestamp,timestamp,calle));
+        repositoryK.save(new Keyword("Atochamiento",timestamp,timestamp,congestion));
+
+
+
+        Iterable<Category> categories = repositoryC.findAll();
+        for (Category category: categories) {
+            List<Document> documents = new Lucene().filtrarTweets(category.getKeywords(),context);
+            for (Document document : documents) {
+                String contenido = document.get("text");
+                String url = "";
+                int idx = contenido.indexOf("https://");
+                if (idx != -1) {
+                    url = contenido.substring(idx, contenido.length());
+                    contenido = contenido.substring(0, idx - 1);
+                }
+
+                Occurrence evento =
+                        new Occurrence(
+                                document.get("user"),
+                                category.getId(),
+                                Long.parseLong(document.get("id")),
+                                document.get("image"),
+                                document.get("location"),
+                                contenido,
+                                url,
+                                timestamp,
+                                timestamp);
+                repositoryO.save(evento);
+
             }
-            repositoryO.save(
-                    new Occurrence(
-                            document.get("user"),
-                            Long.parseLong(document.get("id")),
-                            document.get("image"),
-                            document.get("location"),
-                            contenido,
-                            url,
-                            timestamp,
-                            timestamp));
+            System.out.println(category.getName());
+            System.out.println( category.getId());
+
         }
+
+
     }
 }

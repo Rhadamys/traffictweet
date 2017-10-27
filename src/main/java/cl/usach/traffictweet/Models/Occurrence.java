@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -18,6 +19,9 @@ public class Occurrence {
 
 	@Column(name = "username", nullable = false)
 	private String username;
+
+	@Column(name = "id_category", nullable = false)
+	private int id_category;
 
 	@Column(name = "account_id", nullable = false)
 	private long account_id;
@@ -39,11 +43,10 @@ public class Occurrence {
 	@JsonIgnore
 	private Commune commune;
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(name = "categories_occurrences",
 			joinColumns = @JoinColumn(name = "occurrence_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
-	@JsonIgnore
 	private Set<Category> categories;
 
 	@Column(name="created_at", nullable=false)
@@ -55,6 +58,7 @@ public class Occurrence {
 	public Occurrence() {}
 
 	public Occurrence(String username,
+					  int id_category,
 					  long account_id,
 					  String image,
 					  String location,
@@ -63,6 +67,7 @@ public class Occurrence {
 					  Timestamp createdAt,
 					  Timestamp updatedAt) {
 		this.username = username;
+		this.id_category=id_category;
 		this.account_id = account_id;
 		this.image = image;
 		this.location = location;
@@ -72,6 +77,12 @@ public class Occurrence {
 		this.updatedAt = updatedAt;
 	}
 
+	public int getId_category() {
+		return id_category;
+	}
+	public void setId_category(int id_category) {
+		this.id_category = id_category;
+	}
 	public int getId() { return id;	}
 	public String getUsername() { return username; }
 	public long getAccount_id() { return account_id; }

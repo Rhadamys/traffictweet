@@ -23,6 +23,10 @@ public class Commune {
 	@JsonIgnore
 	private Set<Occurrence> occurrences;
 
+	@OneToMany(fetch = FetchType.EAGER, mappedBy= "commune", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Set<Street> streets;
+
 	@Column(name="created_at", nullable=false)
 	private Timestamp createdAt;
 
@@ -38,6 +42,15 @@ public class Commune {
 		this.updatedAt=updatedAt;
 
 	}
+
+	public Set<Street> getStreets() {
+		return streets;
+	}
+
+	public void setStreets(Set<Street> streets) {
+		this.streets = streets;
+	}
+
 	public int getId() {
 		return id;
 	}

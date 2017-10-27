@@ -77,7 +77,7 @@ public class Lucene {
 
     }
 
-    public List<Document> filtrarTweets(ConfigurableApplicationContext context){
+    public List<Document> filtrarTweets(Iterable<Keyword> keywords,ConfigurableApplicationContext context){
         List<Document> listDocuments = new ArrayList<>();
         try{
             IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("indice/")));
@@ -87,7 +87,6 @@ public class Lucene {
 
             BooleanQuery.Builder finalQuery = new BooleanQuery.Builder();
             QueryParser textParser = new QueryParser("text", analyzer);
-            Iterable<Keyword> keywords = context.getBean(KeywordRepository.class).findAll();
             BooleanQuery.Builder textQueryBuilder = new BooleanQuery.Builder();
             for(Keyword keyword: keywords) {
                 textQueryBuilder.add(textParser.parse(keyword.getName()), BooleanClause.Occur.SHOULD);

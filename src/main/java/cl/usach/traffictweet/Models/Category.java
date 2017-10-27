@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -20,12 +21,12 @@ public class Category {
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "categories",
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "categories",
             cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Occurrence> occurrences;
 
-    @OneToMany(mappedBy= "category", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy= "category", cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Keyword> keywords;
 

@@ -16,7 +16,9 @@ public class TrafficTweetApplication {
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(TrafficTweetApplication.class,args);
-		new Seed().init(context);
+		//new Seed().init(context);
+		new Seed().initCommunes(context);
+		new Seed().initStreet(context);
 
 	}
 }
