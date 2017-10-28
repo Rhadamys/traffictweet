@@ -6,6 +6,7 @@ import Index from './vue/index.vue';
 import Panel from './vue/panel.vue';
 import Graphs from './vue/graphs.vue';
 import About from './vue/about.vue';
+import Occurrence from './vue/occurrence.vue';
 require("./css/app.scss");
 
 Vue.use(VueRouter);
@@ -28,6 +29,11 @@ const routes = [
     {
         path: '/nosotros',
         component: About
+    },
+    {
+        path: '/occurrence/:id',
+        component: Occurrence,
+        props: true,
     }
 ]
 

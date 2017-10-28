@@ -22,5 +22,6 @@ out/
 nbbuild/
 dist/
 nbdist/
+lucene/
 .nb-gradle/
 src/main/resources/static/node_modules/

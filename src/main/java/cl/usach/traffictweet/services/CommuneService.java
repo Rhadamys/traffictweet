@@ -1,9 +1,9 @@
-package cl.usach.traffictweet.Rest;
+package cl.usach.traffictweet.services;
 
-import cl.usach.traffictweet.Models.Commune;
-import cl.usach.traffictweet.Models.Occurrence;
-import cl.usach.traffictweet.Repositories.CommuneRepository;
-import cl.usach.traffictweet.Repositories.OccurrenceRepository;
+import cl.usach.traffictweet.models.Commune;
+import cl.usach.traffictweet.models.Occurrence;
+import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.repositories.OccurrenceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Set;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/communes")
 public class CommuneService {
 

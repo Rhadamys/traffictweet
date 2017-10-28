@@ -1,18 +1,18 @@
-package cl.usach.traffictweet.Rest;
+package cl.usach.traffictweet.services;
 
-import cl.usach.traffictweet.Models.Keyword;
-import cl.usach.traffictweet.Repositories.KeywordRepository;
+import cl.usach.traffictweet.models.Keyword;
+import cl.usach.traffictweet.repositories.KeywordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/keywords")
 public class KeywordService {
     @Autowired
     private KeywordRepository keywordRepository;
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
     public Iterable<Keyword> getAll() {
@@ -25,7 +25,6 @@ public class KeywordService {
         return keywordRepository.findOne(id);
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody

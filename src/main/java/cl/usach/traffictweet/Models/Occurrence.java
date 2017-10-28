@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.Models;
+package cl.usach.traffictweet.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.LazyCollection;
@@ -28,9 +28,11 @@ public class Occurrence {
 	@Column(name = "content", nullable = false)
 	private String content;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@Column(name = "occurrence_date", nullable = false)
+	private Date date;
+
+	@ManyToOne
 	@JoinColumn(name = "commune_id")
-	@JsonIgnore
 	private Commune commune;
 
 	@ManyToMany(cascade = CascadeType.ALL)
@@ -54,10 +56,14 @@ public class Occurrence {
 	public Occurrence(
 			String username,
 			String image,
-			String text) {
+			String text,
+			Date date,
+			Commune commune) {
 		this.username = username;
 		this.image = image;
 		this.content = text;
+		this.date = date;
+		this.commune = commune;
 		this.categories = new HashSet<>();
 	}
 
@@ -65,6 +71,7 @@ public class Occurrence {
 	public String getUsername() { return username; }
 	public String getImage() { return image; }
 	public String getContent() { return content; }
+	public Date getDate() { return date; }
 	public Commune getCommune() { return commune; }
 	public Date getCreatedAt() { return createdAt; }
 	public Set<Category> getCategories() { return categories; }

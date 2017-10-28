@@ -13,15 +13,18 @@
             <span v-for="category in categories" class="badge" v-bind:class="category.key">{{ category.name }}</span>
         </div>
         <div class="panel-body">
+            <b>Comuna:</b>&emsp;{{ commune ? commune.name : 'Desconocida' }}
+        </div>
+        <div class="panel-body">
             {{ content }}
         </div>
-        <div class="panel-footer">
-            <a class="btn-block text-right" target="_blank">Ver detalles...</a>
+        <div v-if="details" class="panel-footer">
+            <a class="btn-block text-right" v-bind:href="'#/occurrence/' + id">Ver detalles...</a>
         </div>
     </div>
 </template>
 <script>
 export default {
-    props: ["image", "username", "content", "categories"]
+    props: ["id", "image", "username", "content", "commune", "categories", "details"],
 }
 </script>

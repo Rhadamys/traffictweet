@@ -1,17 +1,21 @@
-package cl.usach.traffictweet.Rest;
+package cl.usach.traffictweet.services;
 
-import cl.usach.traffictweet.Models.Category;
-import cl.usach.traffictweet.Models.Occurrence;
-import cl.usach.traffictweet.Repositories.CategoryRepository;
-import cl.usach.traffictweet.Repositories.OccurrenceRepository;
+import cl.usach.traffictweet.models.Category;
+import cl.usach.traffictweet.models.Occurrence;
+import cl.usach.traffictweet.repositories.CategoryRepository;
+import cl.usach.traffictweet.repositories.OccurrenceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Set;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/occurrences")
 public class OccurrenceService {
     @Autowired
@@ -20,12 +24,30 @@ public class OccurrenceService {
     @Autowired
     private OccurrenceRepository occurrenceRepository;
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    public Iterable<Occurrence> getAll() {
-        return occurrenceRepository.findAll();
+    public Iterable<Occurrence> getAllOfToday() {
+        Date now = new Date();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        return occurrenceRepository.findByDateBetween(calendar.getTime(), now);
     }
+
+    @RequestMapping(
+            value = "/between",
+            method = RequestMethod.GET)
+    @ResponseBody
+    public Iterable<Occurrence> getAllBetween(
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
+        return occurrenceRepository.findByDateBetween(from, to);
+    }
+
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
@@ -73,7 +95,6 @@ public class OccurrenceService {
         return occurrenceRepository.save(occurrence).getCategories();
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody

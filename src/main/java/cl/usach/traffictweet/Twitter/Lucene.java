@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.Twitter;
+package cl.usach.traffictweet.twitter;
 
 import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
@@ -24,7 +24,7 @@ public class Lucene {
     public static final String LUCENE_INDEX_PATH = "lucene/index/";
     public Lucene() { }
 
-    @Scheduled(cron = "0 0 3 * * ?") // 3 AM todos los días
+    @Scheduled(cron = "0 0 0 * * *") // 00:00 todos los días
     private void updateIndex() {
         try {
             Directory dir = FSDirectory.open(Paths.get(LUCENE_INDEX_PATH));
@@ -60,9 +60,6 @@ public class Lucene {
 
             writer.close();
 
-            // Eliminar colección de tweets ignorados
-            database.getCollection(Constant.IGNORED_COLLECTION).drop();
-
             // Cerrar conexión con MongoDB
             mongo.close();
         } catch(IOException ioe) {
@@ -83,7 +80,6 @@ public class Lucene {
 
             BooleanQuery.Builder finalQuery = new BooleanQuery.Builder();
             QueryParser textParser = new QueryParser("text", analyzer);
-            Iterable<Keyword> keywords = context.getBean(KeywordRepository.class).findAll();
             BooleanQuery.Builder textQueryBuilder = new BooleanQuery.Builder();
             for(Keyword keyword: keywords) {
                 textQueryBuilder.add(textParser.parse(keyword.getName()), BooleanClause.Occur.SHOULD);

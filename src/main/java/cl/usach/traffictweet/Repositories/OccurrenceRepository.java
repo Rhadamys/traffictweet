@@ -1,8 +1,11 @@
-package cl.usach.traffictweet.Repositories;
+package cl.usach.traffictweet.repositories;
 
-import cl.usach.traffictweet.Models.Occurrence;
+import cl.usach.traffictweet.models.Occurrence;
 import org.springframework.data.repository.CrudRepository;
 
-public interface OccurrenceRepository extends CrudRepository<Occurrence,Integer>{
+import java.util.Date;
+import java.util.List;
 
+public interface OccurrenceRepository extends CrudRepository<Occurrence,Integer>{
+    List<Occurrence> findByDateBetween(Date start, Date end);
 }

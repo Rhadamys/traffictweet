@@ -6,7 +6,7 @@
         </ol>
         <div class="row" v-for="i in Math.ceil(tweets.length / 3)">
             <div v-for="tweet in tweets.slice((i - 1) * 3, i * 3)" class="col-md-4">
-                <tweet v-bind="tweet"></tweet>
+                <tweet v-bind="tweet" details="true"></tweet>
             </div>
         </div>
     </div>

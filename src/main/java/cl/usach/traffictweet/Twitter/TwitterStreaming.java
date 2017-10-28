@@ -1,31 +1,47 @@
-package cl.usach.traffictweet.Twitter;
+package cl.usach.traffictweet.twitter;
 
-import java.io.IOException;
-import java.util.List;
-
-import cl.usach.traffictweet.Models.Occurrence;
+import cl.usach.traffictweet.models.Category;
+import cl.usach.traffictweet.models.*;
+import cl.usach.traffictweet.repositories.CategoryRepository;
+import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.Util;
-import org.apache.commons.io.IOUtils;
-
-import twitter4j.FilterQuery;
-import twitter4j.StallWarning;
-import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
-import com.mongodb.client.MongoCollection; 
-import com.mongodb.client.MongoDatabase;
-
-import org.bson.Document; 
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.apache.commons.io.IOUtils;
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+import twitter4j.*;
 
-public class TwitterStreaming {
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+@Component
+public class TwitterStreaming implements ApplicationRunner {
+	private OccurrenceRepository occurrenceRepository;
+	private CategoryRepository categoryRepository;
+	private CommuneRepository communeRepository;
+
+
 	private final TwitterStream twitterStream;
 	private List<String> keywords;
 
-	private TwitterStreaming() {
+	@Autowired
+	public TwitterStreaming(
+			CategoryRepository categoryRepository,
+			OccurrenceRepository occurrenceRepository,
+			CommuneRepository communeRepository) {
+		this.categoryRepository = categoryRepository;
+		this.occurrenceRepository = occurrenceRepository;
+		this.communeRepository = communeRepository;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
 		loadKeywords();
 	}
@@ -39,7 +55,7 @@ public class TwitterStreaming {
 		}
 	}
 
-	private void init() {
+	public void run(ApplicationArguments args) {
 		StatusListener listener = new StatusListener() {
 
 			public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
@@ -63,47 +79,36 @@ public class TwitterStreaming {
 
 			@Override
 			public void onStatus(Status status) {
-				MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-
-				// Accessing the database
-				MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-
-				// Creating document
-				Document document = new Document(Constant.TWEET_FIELD, status.getId())
-						.append(Constant.USER_FIELD, status.getUser().getScreenName())
-						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
-						.append(Constant.TEXT_FIELD, status.getText());
-
-				MongoCollection<Document> collection;
-
 				if(Util.match(status.getText(), keywords)) {
+					MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+
+					// Accessing the database
+					MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+
+					// Creating document
+					System.out.println("Generating document...");
+					Document document = new Document(Constant.TWEET_FIELD, status.getId())
+							.append(Constant.DATE_FIELD, new Date())
+							.append(Constant.USER_FIELD, status.getUser().getScreenName())
+							.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
+							.append(Constant.TEXT_FIELD, status.getText());
+
 					//Creating a collection
 					if(database.getCollection(Constant.EVENTS_COLLECTION) == null)
 						database.createCollection(Constant.EVENTS_COLLECTION);
 
-					/*
-					int eventId = Occurrence.addOccurrence(
-							status.getUser().getScreenName(),
-							status.getUser().getOriginalProfileImageURL(),
-							status.getText());
-
-					document.append(Constant.EVENT_FIELD, eventId);*/
+					System.out.println("Generating occurrence...");
+					int eventId = storeOccurrence(document);
+					document.append(Constant.EVENT_FIELD, eventId);
 
 					// Retieving a collection
-					collection = database.getCollection(Constant.EVENTS_COLLECTION);
-				} else {
-					//Creating a collection
-					if(database.getCollection(Constant.IGNORED_COLLECTION) == null)
-						database.createCollection(Constant.IGNORED_COLLECTION);
+					MongoCollection<Document> occurrences = database.getCollection(Constant.EVENTS_COLLECTION);
+					occurrences.insertOne(document);
+					System.out.println("Document inserted successfully!");
 
-					// Retieving a collection
-					collection = database.getCollection(Constant.IGNORED_COLLECTION);
+					mongo.close();
+					System.out.println("Connection closed...");
 				}
-
-				collection.insertOne(document);
-				System.out.println("Document inserted successfully");
-				mongo.close();
-				System.out.println("Connection closed...");
 			}
 		};
 
@@ -117,7 +122,50 @@ public class TwitterStreaming {
 		this.twitterStream.filter(fq);
 	}
 
-	public static void main(String[] args) {
-		new TwitterStreaming().init();
+	private int storeOccurrence(Document document) {
+		List<Category> categories = new ArrayList<>();
+		categoryRepository.findAll().forEach(categories::add);
+		Iterable<Commune> communes = communeRepository.findAll();
+
+		String user = document.get(Constant.USER_FIELD).toString();
+		String image = document.get(Constant.IMAGE_FIELD).toString();
+		String text = document.get(Constant.TEXT_FIELD).toString();
+		DateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy", Locale.ENGLISH);
+		Date date;
+		try {
+			date = dateFormat.parse(document.getString(Constant.DATE_FIELD));
+		} catch (ParseException ex) {
+			date = new Date();
+		}
+
+		Commune occurrenceCommune = null;
+		for(Commune commune: communes) {
+			List<String> keywords = new ArrayList<>();
+			keywords.add(Util.clean(commune.getName()));
+			for(Street street: commune.getStreets())
+				keywords.add(Util.clean(street.getName()));
+
+			if(Util.match(text, keywords)) {
+				occurrenceCommune = commune;
+				break;
+			}
+		}
+
+		Occurrence occurrence = occurrenceRepository.save(
+				new Occurrence(user, image, text, date, occurrenceCommune));
+
+		for (Category category : categories) {
+			List<String> keywords = new ArrayList<>();
+			for (Keyword keyword : category.getKeywords())
+				keywords.add(keyword.getName());
+
+			if (Util.match(text, keywords)) {
+				category.addOccurrence(occurrence);
+				occurrence.addCategory(category);
+			}
+		}
+
+		categoryRepository.save(categories);
+		return occurrence.getId();
 	}
 }
