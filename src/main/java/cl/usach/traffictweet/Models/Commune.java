@@ -3,7 +3,8 @@ package cl.usach.traffictweet.Models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -23,62 +24,35 @@ public class Commune {
 	@JsonIgnore
 	private Set<Occurrence> occurrences;
 
-	@Column(name="created_at", nullable=false)
-	private Timestamp createdAt;
+	@Column(name="created_at")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date createdAt;
 
-	@Column(name="updated_at", nullable=false)
-	private Timestamp updatedAt;
-
-	public Commune() {
+	@PrePersist
+	void onCreate() {
+		this.createdAt = new Date();
 	}
 
-	public Commune(String name, Timestamp createdAt, Timestamp updatedAt){
-		this.name=name;
-		this.createdAt=createdAt;
-		this.updatedAt=updatedAt;
+	public Commune() { }
 
+	public Commune(String name) {
+		this.name = name;
+		this.occurrences = new HashSet<>();
 	}
+
 	public int getId() {
 		return id;
 	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
 	public String getName() {
 		return name;
 	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public Set<Occurrence> getOccurrences() {
 		return occurrences;
 	}
-
 	public void addOccurrence(Occurrence occurrence) {
 		this.occurrences.add(occurrence);
 	}
-
-	public void setOccurrences(Set<Occurrence> occurrences) {
-		this.occurrences = occurrences;
-	}
-
-	public Timestamp getCreatedAt() {
+	public Date getCreatedAt() {
 		return createdAt;
-	}
-
-	public void setCreatedAt(Timestamp createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public Timestamp getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(Timestamp updatedAt) {
-		this.updatedAt = updatedAt;
 	}
 }

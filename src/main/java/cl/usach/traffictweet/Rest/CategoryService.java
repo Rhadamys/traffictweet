@@ -15,7 +15,6 @@ import java.util.Set;
 @RestController
 @RequestMapping("/categories")
 public class CategoryService {
-
     @Autowired
     private CategoryRepository categoryRepository;
 

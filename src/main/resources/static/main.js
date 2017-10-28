@@ -6,6 +6,7 @@ import Index from './vue/index.vue';
 import Panel from './vue/panel.vue';
 import Graphs from './vue/graphs.vue';
 import About from './vue/about.vue';
+require("./css/app.scss");
 
 Vue.use(VueRouter);
 Vue.use(VueResource);

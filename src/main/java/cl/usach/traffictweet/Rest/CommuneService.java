@@ -42,7 +42,7 @@ public class CommuneService {
 
     @RequestMapping(value = "/{id}/occurrences", method = RequestMethod.GET)
     @ResponseBody
-    public  Set <Occurrence> findActors(@PathVariable("id") Integer id) {
+    public Set<Occurrence> findActors(@PathVariable("id") Integer id) {
         return communeRepository.findOne(id).getOccurrences();
     }
 

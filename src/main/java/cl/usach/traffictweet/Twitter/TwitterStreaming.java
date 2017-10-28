@@ -1,9 +1,11 @@
 package cl.usach.traffictweet.Twitter;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
+import cl.usach.traffictweet.Models.Occurrence;
+import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.Util;
 import org.apache.commons.io.IOUtils;
 
 import twitter4j.FilterQuery;
@@ -17,23 +19,21 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document; 
-import com.mongodb.MongoClient; 
-import com.mongodb.MongoCredential; 
+import com.mongodb.MongoClient;
 
 public class TwitterStreaming {
 	private final TwitterStream twitterStream;
-	private Set<String> keywords;
+	private List<String> keywords;
 
 	private TwitterStreaming() {
 		this.twitterStream = new TwitterStreamFactory().getInstance();
-		this.keywords = new HashSet<>();
 		loadKeywords();
 	}
 
 	private void loadKeywords() {
 		try {
 			ClassLoader classLoader = getClass().getClassLoader();
-			keywords.addAll(IOUtils.readLines(classLoader.getResourceAsStream("words.dat"), "UTF-8"));
+			keywords = IOUtils.readLines(classLoader.getResourceAsStream("words.dat"), "UTF-8");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -59,46 +59,64 @@ public class TwitterStreaming {
 			}
 
 			@Override
-			public void onStallWarning(StallWarning arg0) {
-
-			}
+			public void onStallWarning(StallWarning arg0) {	}
 
 			@Override
 			public void onStatus(Status status) {
-				MongoClient mongo = new MongoClient( "localhost" , 27017 );
+				MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
 
-      			// Creating Credentials
-				MongoCredential credential = MongoCredential.createCredential("traffic-tweet", "tweetsDB", "password".toCharArray());
-				System.out.println("Connected to the database successfully");  
-				
-				// Accessing the database 
-				MongoDatabase database = mongo.getDatabase("tweetsDB");
-				//Creating a collection
-				if(database.getCollection("tweet") == null)
-				{
-					database.createCollection("tweet");
+				// Accessing the database
+				MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+
+				// Creating document
+				Document document = new Document(Constant.TWEET_FIELD, status.getId())
+						.append(Constant.USER_FIELD, status.getUser().getScreenName())
+						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
+						.append(Constant.TEXT_FIELD, status.getText());
+
+				MongoCollection<Document> collection;
+
+				if(Util.match(status.getText(), keywords)) {
+					//Creating a collection
+					if(database.getCollection(Constant.EVENTS_COLLECTION) == null)
+						database.createCollection(Constant.EVENTS_COLLECTION);
+
+					/*
+					int eventId = Occurrence.addOccurrence(
+							status.getUser().getScreenName(),
+							status.getUser().getOriginalProfileImageURL(),
+							status.getText());
+
+					document.append(Constant.EVENT_FIELD, eventId);*/
+
+					// Retieving a collection
+					collection = database.getCollection(Constant.EVENTS_COLLECTION);
+				} else {
+					//Creating a collection
+					if(database.getCollection(Constant.IGNORED_COLLECTION) == null)
+						database.createCollection(Constant.IGNORED_COLLECTION);
+
+					// Retieving a collection
+					collection = database.getCollection(Constant.IGNORED_COLLECTION);
 				}
-				// Retieving a collection
-				MongoCollection<Document> tweets = database.getCollection("tweet");
-				Document document = new Document("id", status.getId())
-					.append("user","@" + status.getUser().getScreenName ())
-					.append("location", status.getUser().getLocation())
-					.append("image", status.getUser().getOriginalProfileImageURL())
-					.append("text", status.getText());
 
-				tweets.insertOne(document); 
+				collection.insertOne(document);
 				System.out.println("Document inserted successfully");
+				mongo.close();
+				System.out.println("Connection closed...");
 			}
 		};
 
-		FilterQuery fq = new FilterQuery();
-		fq.language(new String[]{"es"});
-		fq.track(keywords.toArray(new String[0]));
+		FilterQuery fq = new FilterQuery()
+				.language("es")
+				.locations(
+						new double[] { -71.7088, -34.2878 },
+						new double[] { -69.769, -32.9195 });
 
 		this.twitterStream.addListener(listener);
 		this.twitterStream.filter(fq);
 	}
-	
+
 	public static void main(String[] args) {
 		new TwitterStreaming().init();
 	}

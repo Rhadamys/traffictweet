@@ -6,17 +6,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
-
-
-@Configuration
-@EnableAutoConfiguration
+import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
+@EnableSpringConfigured
 public class TrafficTweetApplication {
-
 	public static void main(String[] args) {
-		ConfigurableApplicationContext context = SpringApplication.run(TrafficTweetApplication.class,args);
-		new Seed().init(context);
-
+		SpringApplication.run(TrafficTweetApplication.class,args);
 	}
 }

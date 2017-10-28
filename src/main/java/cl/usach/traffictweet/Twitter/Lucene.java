@@ -1,86 +1,82 @@
 package cl.usach.traffictweet.Twitter;
 
-import cl.usach.traffictweet.Repositories.CommuneRepository;
-import cl.usach.traffictweet.Repositories.KeywordRepository;
+import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import cl.usach.traffictweet.Models.*;
-import org.springframework.context.ConfigurableApplicationContext;
-
+@Component
 public class Lucene {
+    public static final String LUCENE_INDEX_PATH = "lucene/index/";
     public Lucene() { }
 
-    private void crearIndice() {
+    @Scheduled(cron = "0 0 3 * * ?") // 3 AM todos los días
+    private void updateIndex() {
         try {
-            Directory dir = FSDirectory.open(Paths.get("indice/"));
+            Directory dir = FSDirectory.open(Paths.get(LUCENE_INDEX_PATH));
             Analyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
             iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
             IndexWriter writer = new IndexWriter(dir,iwc);
 
-            MongoClient mongo = new MongoClient("localhost", 27017 );
-            MongoDatabase database = mongo.getDatabase("tweetsDB");
-            MongoCollection<org.bson.Document> tweets = database.getCollection("tweet");
+            // Abrir conexión con MongoDB
+            MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+            MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+            MongoCollection<org.bson.Document> events = database.getCollection(Constant.EVENTS_COLLECTION);
 
-            for(org.bson.Document d : tweets.find()) {
-                String id = d.get("id").toString();
-                String user = d.get("user").toString();
-                String location;
-                if (d.get("location") == null) {
-                    location = "-";
-                } else {
-                    location = d.get("location").toString();
-                }
-                String image = d.get("image").toString();
-                String text = d.get("text").toString();
+            for(org.bson.Document document : events.find()) {
+                String id = document.get(Constant.TWEET_FIELD).toString();
+                String user = document.get(Constant.USER_FIELD).toString();
+                String image = document.get(Constant.IMAGE_FIELD).toString();
+                String text = document.get(Constant.TEXT_FIELD).toString();
 
                 org.apache.lucene.document.Document docLucene = new org.apache.lucene.document.Document();
-                docLucene.add(new TextField("id", id, Field.Store.YES));
-                docLucene.add(new TextField("user", user, Field.Store.YES));
-                docLucene.add(new TextField("location", location, Field.Store.YES));
-                docLucene.add(new TextField("image", image, Field.Store.YES));
-                docLucene.add(new TextField("text", text, Field.Store.YES));
+                docLucene.add(new TextField(Constant.TWEET_FIELD, id, Field.Store.YES));
+                docLucene.add(new TextField(Constant.USER_FIELD, user, Field.Store.YES));
+                docLucene.add(new TextField(Constant.IMAGE_FIELD, image, Field.Store.YES));
+                docLucene.add(new TextField(Constant.TEXT_FIELD, text, Field.Store.YES));
 
                 if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
                     writer.addDocument(docLucene);
                 } else {
-                    writer.updateDocument(new Term("path" + d.toString()), docLucene);
+                    writer.updateDocument(new Term("path" + document.toString()), docLucene);
                 }
             }
 
             writer.close();
+
+            // Eliminar colección de tweets ignorados
+            database.getCollection(Constant.IGNORED_COLLECTION).drop();
+
+            // Cerrar conexión con MongoDB
+            mongo.close();
         } catch(IOException ioe) {
-            System.out.println(" caught a "+ ioe.getClass() + "\n with message: " + ioe.getMessage());
+            System.out.println("Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
         }
 
     }
 
+    // TODO: Adecuar a nueva funcionalidad
+    /*
     public List<Document> filtrarTweets(ConfigurableApplicationContext context){
         List<Document> listDocuments = new ArrayList<>();
         try{
-            IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("indice/")));
+            IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(LUCENE_INDEX_PATH)));
             IndexSearcher searcher = new IndexSearcher(reader);
             StandardAnalyzer analyzer = new StandardAnalyzer();
             TopScoreDocCollector collector = TopScoreDocCollector.create(100);
@@ -125,9 +121,5 @@ public class Lucene {
             Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
         }
         return listDocuments;
-    }
-
-    public static void main(String[] args) {
-        new Lucene().crearIndice();
-    }
+    }*/
 }

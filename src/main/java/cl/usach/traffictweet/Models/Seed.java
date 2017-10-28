@@ -4,97 +4,148 @@ import cl.usach.traffictweet.Repositories.CategoryRepository;
 import cl.usach.traffictweet.Repositories.CommuneRepository;
 import cl.usach.traffictweet.Repositories.KeywordRepository;
 import cl.usach.traffictweet.Repositories.OccurrenceRepository;
-import cl.usach.traffictweet.Twitter.Lucene;
-import org.apache.lucene.document.Document;
-import org.springframework.context.ConfigurableApplicationContext;
+import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.Util;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Seed {
-    public Seed() {
+@Component
+public class Seed implements ApplicationRunner {
+    private CategoryRepository categoryRepository;
+    private KeywordRepository keywordRepository;
+    private CommuneRepository communeRepository;
+    private OccurrenceRepository occurrenceRepository;
 
+    @Autowired
+    public Seed(
+            CategoryRepository categoryRepository,
+            KeywordRepository keywordRepository,
+            CommuneRepository communeRepository,
+            OccurrenceRepository occurrenceRepository) {
+        this.categoryRepository = categoryRepository;
+        this.keywordRepository = keywordRepository;
+        this.communeRepository = communeRepository;
+        this.occurrenceRepository = occurrenceRepository;
     }
-    public void init(ConfigurableApplicationContext context) {
-        CategoryRepository repositoryC = context.getBean(CategoryRepository.class);
-        KeywordRepository repositoryK = context.getBean(KeywordRepository.class);
-        CommuneRepository repositoryCom = context.getBean(CommuneRepository.class);
-        OccurrenceRepository repositoryO = context.getBean(OccurrenceRepository.class);
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        repositoryC.save(new Category("Congestion",timestamp,timestamp));
-        repositoryC.save(new Category("Incidente",timestamp,timestamp));
-        repositoryC.save(new Category("Desvíos",timestamp,timestamp));
-        repositoryC.save(new Category("Calle cerrada",timestamp,timestamp));
-        repositoryC.save(new Category("Accidente",timestamp,timestamp));
-        repositoryC.save(new Category("Varios",timestamp,timestamp));
+    public void run(ApplicationArguments args) {
+        Category accidente = categoryRepository.save(new Category("Accidente"));
+        Category congestion = categoryRepository.save(new Category("Congestión"));
+        Category desvio = categoryRepository.save(new Category("Desvío"));
+        Category semaforos = categoryRepository.save(new Category("Semáforos"));
 
-        repositoryK.save(new Keyword("Taco",timestamp,timestamp));
-        repositoryK.save(new Keyword("Accidente",timestamp,timestamp));
-        repositoryK.save(new Keyword("Choque",timestamp,timestamp));
-        repositoryK.save(new Keyword("Desvío",timestamp,timestamp));
-        repositoryK.save(new Keyword("Intersección",timestamp,timestamp));
-        repositoryK.save(new Keyword("Calle",timestamp,timestamp));
-        repositoryK.save(new Keyword("Comuna",timestamp,timestamp));
-        repositoryK.save(new Keyword("Atochamiento",timestamp,timestamp));
+        Keyword taco = keywordRepository.save(new Keyword("taco", congestion));
+        Keyword atochamiento = keywordRepository.save(new Keyword("atochamiento", congestion));
+        Keyword kCongestion = keywordRepository.save(new Keyword("congestion", congestion));
+        congestion.addKeyword(taco);
+        congestion.addKeyword(atochamiento);
+        congestion.addKeyword(kCongestion);
 
-        repositoryCom.save(new Commune("Cerrillos", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Reina", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pudahuel", timestamp, timestamp));
-        repositoryCom.save(new Commune("Cerro Navia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Las Condes", timestamp, timestamp));
-        repositoryCom.save(new Commune("Quilicura", timestamp, timestamp));
-        repositoryCom.save(new Commune("Conchalí", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Barnechea", timestamp, timestamp));
-        repositoryCom.save(new Commune("Quinta Normal", timestamp, timestamp));
-        repositoryCom.save(new Commune("El Bosque", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Espejo", timestamp, timestamp));
-        repositoryCom.save(new Commune("Recoleta", timestamp, timestamp));
-        repositoryCom.save(new Commune("Estación Central", timestamp, timestamp));
-        repositoryCom.save(new Commune("Lo Prado", timestamp, timestamp));
-        repositoryCom.save(new Commune("Renca", timestamp, timestamp));
-        repositoryCom.save(new Commune("Huechuraba", timestamp, timestamp));
-        repositoryCom.save(new Commune("Macul", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Miguel", timestamp, timestamp));
-        repositoryCom.save(new Commune("Independencia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Maipú", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Joaquín", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Cisterna", timestamp, timestamp));
-        repositoryCom.save(new Commune("Ñuñoa", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Ramón", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Florida", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pedro Aguirre Cerda", timestamp, timestamp));
-        repositoryCom.save(new Commune("Santiago", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Pintana", timestamp, timestamp));
-        repositoryCom.save(new Commune("Peñalolén", timestamp, timestamp));
-        repositoryCom.save(new Commune("Vitacura", timestamp, timestamp));
-        repositoryCom.save(new Commune("La Granja", timestamp, timestamp));
-        repositoryCom.save(new Commune("Providencia", timestamp, timestamp));
-        repositoryCom.save(new Commune("Padre Hurtado", timestamp, timestamp));
-        repositoryCom.save(new Commune("San Bernardo", timestamp, timestamp));
-        repositoryCom.save(new Commune("Puente Alto", timestamp, timestamp));
-        repositoryCom.save(new Commune("Pirque", timestamp, timestamp));
-        repositoryCom.save(new Commune("San José de Maipo", timestamp, timestamp));
+        Keyword kAccidente = keywordRepository.save(new Keyword("accidente", accidente));
+        Keyword colision = keywordRepository.save(new Keyword("colision", accidente));
+        Keyword volcamiento = keywordRepository.save(new Keyword("volcamiento", accidente));
+        Keyword choque = keywordRepository.save(new Keyword("choque", accidente));
+        accidente.addKeyword(kAccidente);
+        accidente.addKeyword(colision);
+        accidente.addKeyword(volcamiento);
+        accidente.addKeyword(choque);
 
-        List<Document> documents = new Lucene().filtrarTweets(context);
-        for(Document document: documents) {
-            String contenido = document.get("text");
-            String url = "";
-            int idx = contenido.indexOf("https://");
-            if(idx != -1) {
-                url = contenido.substring(idx, contenido.length());
-                contenido = contenido.substring(0, idx - 1);
+        Keyword apagado = keywordRepository.save(new Keyword("apagado", semaforos));
+        Keyword fallo = keywordRepository.save(new Keyword("fallo,semaforo", semaforos));
+        Keyword falla = keywordRepository.save(new Keyword("falla,semaforo", semaforos));
+        semaforos.addKeyword(apagado);
+        semaforos.addKeyword(fallo);
+        semaforos.addKeyword(falla);
+
+        Keyword kDesvio = keywordRepository.save(new Keyword("desvío", desvio));
+        Keyword cerrada = keywordRepository.save(new Keyword("calle,cerrada", desvio));
+        Keyword trabajos = keywordRepository.save(new Keyword("desvio,trabajo", desvio));
+        Keyword obras = keywordRepository.save(new Keyword("desvio,obra", desvio));
+        desvio.addKeyword(kDesvio);
+        desvio.addKeyword(cerrada);
+        desvio.addKeyword(trabajos);
+        desvio.addKeyword(obras);
+
+        categoryRepository.save(congestion);
+        categoryRepository.save(desvio);
+        categoryRepository.save(accidente);
+        categoryRepository.save(semaforos);
+
+        communeRepository.save(new Commune("Cerrillos"));
+        communeRepository.save(new Commune("Cerro Navia"));
+        communeRepository.save(new Commune("Conchalí"));
+        communeRepository.save(new Commune("El Bosque"));
+        communeRepository.save(new Commune("Estación Central"));
+        communeRepository.save(new Commune("Huechuraba"));
+        communeRepository.save(new Commune("Independencia"));
+        communeRepository.save(new Commune("La Cisterna"));
+        communeRepository.save(new Commune("La Florida"));
+        communeRepository.save(new Commune("La Pintana"));
+        communeRepository.save(new Commune("La Reina"));
+        communeRepository.save(new Commune("Las Condes"));
+        communeRepository.save(new Commune("Lo Barnechea"));
+        communeRepository.save(new Commune("Lo Espejo"));
+        communeRepository.save(new Commune("La Granja"));
+        communeRepository.save(new Commune("Lo Prado"));
+        communeRepository.save(new Commune("Macul"));
+        communeRepository.save(new Commune("Maipú"));
+        communeRepository.save(new Commune("Ñuñoa"));
+        communeRepository.save(new Commune("Padre Hurtado"));
+        communeRepository.save(new Commune("Pedro Aguirre Cerda"));
+        communeRepository.save(new Commune("Peñalolén"));
+        communeRepository.save(new Commune("Pirque"));
+        communeRepository.save(new Commune("Providencia"));
+        communeRepository.save(new Commune("Pudahuel"));
+        communeRepository.save(new Commune("Puente Alto"));
+        communeRepository.save(new Commune("Quilicura"));
+        communeRepository.save(new Commune("Quinta Normal"));
+        communeRepository.save(new Commune("Recoleta"));
+        communeRepository.save(new Commune("Renca"));
+        communeRepository.save(new Commune("Santiago"));
+        communeRepository.save(new Commune("San Bernardo"));
+        communeRepository.save(new Commune("San Joaquín"));
+        communeRepository.save(new Commune("San José de Maipo"));
+        communeRepository.save(new Commune("San Miguel"));
+        communeRepository.save(new Commune("San Ramón"));
+        communeRepository.save(new Commune("Vitacura"));
+
+        // Abrir conexión con MongoDB
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> events = database.getCollection(Constant.EVENTS_COLLECTION);
+
+        List<Category> categories = new ArrayList<>();
+        categoryRepository.findAll().forEach(categories::add);
+        for(Document document: events.find()) {
+            String user = document.get(Constant.USER_FIELD).toString();
+            String image = document.get(Constant.IMAGE_FIELD).toString();
+            String text = document.get(Constant.TEXT_FIELD).toString();
+
+            Occurrence occurrence = occurrenceRepository.save(new Occurrence(user, image, text));
+            for(int i = 0; i < categories.size(); i++) {
+                Category category = categories.get(i);
+                List<String> keywords = new ArrayList<>();
+                for(Keyword keyword: category.getKeywords())
+                    keywords.add(keyword.getName());
+
+                if(Util.match(text, keywords)) {
+                    category.addOccurrence(occurrence);
+                    occurrence.addCategory(category);
+                }
             }
-            repositoryO.save(
-                    new Occurrence(
-                            document.get("user"),
-                            Long.parseLong(document.get("id")),
-                            document.get("image"),
-                            document.get("location"),
-                            contenido,
-                            url,
-                            timestamp,
-                            timestamp));
         }
+
+        categoryRepository.save(categories);
+        // Cerrar conexión con MongoDB
+        mongo.close();
     }
 }

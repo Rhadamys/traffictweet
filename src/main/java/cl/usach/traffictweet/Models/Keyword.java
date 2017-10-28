@@ -3,7 +3,7 @@ package cl.usach.traffictweet.Models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Entity
 @Table(name = "keywords")
@@ -23,58 +23,32 @@ public class Keyword {
     @JsonIgnore
     private Category category;
 
-    @Column(name="created_at", nullable=false)
-    private Timestamp createdAt;
+    @Column(name="created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
 
-    @Column(name="updated_at", nullable=false)
-    private Timestamp updatedAt;
-
-    public Keyword() {
+    @PrePersist
+    void onCreate() {
+        this.createdAt = new Date();
     }
 
-    public Keyword(String name, Timestamp createdAt, Timestamp updatedAt){
-        this.name=name;
-        this.createdAt=createdAt;
-        this.updatedAt=updatedAt;
+    public Keyword() { }
+
+    public Keyword(String name, Category category) {
+        this.name = name;
+        this.category = category;
     }
 
     public int getId() {
         return id;
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Category getCategory() {
         return category;
     }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

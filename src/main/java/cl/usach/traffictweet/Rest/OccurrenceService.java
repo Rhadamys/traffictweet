@@ -1,7 +1,6 @@
 package cl.usach.traffictweet.Rest;
 
 import cl.usach.traffictweet.Models.Category;
-import cl.usach.traffictweet.Models.Keyword;
 import cl.usach.traffictweet.Models.Occurrence;
 import cl.usach.traffictweet.Repositories.CategoryRepository;
 import cl.usach.traffictweet.Repositories.OccurrenceRepository;
@@ -15,7 +14,6 @@ import java.util.Set;
 @RestController
 @RequestMapping("/occurrences")
 public class OccurrenceService {
-
     @Autowired
     private CategoryRepository categoryRepository;
 

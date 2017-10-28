@@ -2,18 +2,18 @@
     <div class="panel">
         <div class="panel-heading">
             <h4>
-                {{ username }}
+                @{{ username }}
                 <img v-bind:src="image"
                      class="pull-left img-circle img-responsive"
                      style="padding: 0px; margin-right: 1em; height: 1.2em;"
-                     alt="Imagen de usugradle ario"/>
+                     alt="Imagen de usuario"/>
             </h4>
         </div>
         <div class="panel-body">
-            Categoría: {{ category }}
+            <span v-for="category in categories" class="badge" v-bind:class="category.key">{{ category.name }}</span>
         </div>
         <div class="panel-body">
-            {{ content }} <a v-bind:href="url" target="_blank">{{ url }}</a>
+            {{ content }}
         </div>
         <div class="panel-footer">
             <a class="btn-block text-right" target="_blank">Ver detalles...</a>
@@ -22,6 +22,6 @@
 </template>
 <script>
 export default {
-    props: ["image", "username", "category", "content", "url"]
+    props: ["image", "username", "content", "categories"]
 }
 </script>
