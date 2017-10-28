@@ -67,6 +67,12 @@ public class Occurrence {
 		this.categories = new HashSet<>();
 	}
 
+	public int getId_category() {
+		return id_category;
+	}
+	public void setId_category(int id_category) {
+		this.id_category = id_category;
+	}
 	public int getId() { return id;	}
 	public String getUsername() { return username; }
 	public String getImage() { return image; }
