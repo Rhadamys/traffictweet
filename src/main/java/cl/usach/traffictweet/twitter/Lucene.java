@@ -24,7 +24,7 @@ public class Lucene {
     public static final String LUCENE_INDEX_PATH = "lucene/index/";
     public Lucene() { }
 
-    @Scheduled(cron = "0 0 0 * * *") // 00:00 todos los días
+    @Scheduled(cron = "0 0 3 * * *") // 03:00 todos los días
     private void updateIndex() {
         try {
             Directory dir = FSDirectory.open(Paths.get(LUCENE_INDEX_PATH));
