@@ -49,7 +49,10 @@ public class TwitterStreaming implements ApplicationRunner {
 	private void loadKeywords() {
 		try {
 			ClassLoader classLoader = getClass().getClassLoader();
-			keywords = IOUtils.readLines(classLoader.getResourceAsStream("words.dat"), "UTF-8");
+			keywords = IOUtils.readLines(
+					classLoader.getResourceAsStream("words.dat"),
+					"UTF-8");
+			System.out.println(keywords);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

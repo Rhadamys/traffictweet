@@ -162,7 +162,9 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("accidente", accidente));
         keywordRepository.save(new Keyword("colision", accidente));
         keywordRepository.save(new Keyword("volcamiento", accidente));
+        keywordRepository.save(new Keyword("volcado", accidente));
         keywordRepository.save(new Keyword("choque", accidente));
+        keywordRepository.save(new Keyword("chocado", accidente));
         keywordRepository.save(new Keyword("taco", congestion));
         keywordRepository.save(new Keyword("atochamiento", congestion));
         keywordRepository.save(new Keyword("congestion", congestion));
@@ -170,7 +172,8 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("calle,cerrada", desvio));
         keywordRepository.save(new Keyword("desvio,trabajo", desvio));
         keywordRepository.save(new Keyword("desvio,obra", desvio));
-        keywordRepository.save(new Keyword("apagado", semaforos));
+        keywordRepository.save(new Keyword("semaforo,apagado", semaforos));
+        keywordRepository.save(new Keyword("semaforo,mal,estado", semaforos));
         keywordRepository.save(new Keyword("fallo,semaforo", semaforos));
         keywordRepository.save(new Keyword("falla,semaforo", semaforos));
 
