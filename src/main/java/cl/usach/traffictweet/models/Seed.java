@@ -112,13 +112,7 @@ public class Seed implements ApplicationRunner {
             String user = document.get(Constant.USER_FIELD).toString();
             String image = document.get(Constant.IMAGE_FIELD).toString();
             String text = document.get(Constant.TEXT_FIELD).toString();
-            DateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy", Locale.ENGLISH);
-            Date date;
-            try {
-                date = dateFormat.parse(document.getString(Constant.DATE_FIELD));
-            } catch (ParseException ex) {
-                date = new Date();
-            }
+            Date date = document.getDate(Constant.DATE_FIELD);
 
             Commune occurrenceCommune = null;
             for(Commune commune: communes) {
