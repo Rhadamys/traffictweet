@@ -26,6 +26,14 @@ public class OccurrenceService {
 
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
+    public Iterable<Occurrence> getAll() {
+        return occurrenceRepository.findAll();
+    }
+
+    @RequestMapping(
+            value = "/today",
+            method = RequestMethod.GET)
+    @ResponseBody
     public Iterable<Occurrence> getAllOfToday() {
         Date now = new Date();
 
