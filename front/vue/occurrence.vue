@@ -27,7 +27,7 @@ export default {
         'tweet': Tweet
     },
     mounted: function() {
-        this.$http.get("http://localhost:9090/occurrences/" + this.id)
+        this.$http.get("http://162.243.187.88:9090/traffictweet/occurrences/" + this.id)
             .then(response=>{
                 this.occurrence = response.body;
 

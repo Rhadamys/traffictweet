@@ -31,7 +31,7 @@ export default {
         'tweet': Tweet
     },
     mounted: function () {
-        this.$http.get('http://localhost:9090/occurrences/today')
+        this.$http.get('http://162.243.187.88:9090/traffictweet/occurrences/today')
             .then(response=>{
                 this.occurrences = response.body;
 
