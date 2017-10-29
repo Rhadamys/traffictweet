@@ -79,36 +79,43 @@ public class TwitterStreaming implements ApplicationRunner {
 
 			@Override
 			public void onStatus(Status status) {
+				MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+
+				// Accessing the database
+				MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+				MongoCollection<Document> collection;
+
+				// Creating document
+				System.out.println("Generating document...");
+				Document document = new Document(Constant.TWEET_FIELD, status.getId())
+						.append(Constant.DATE_FIELD, new Date())
+						.append(Constant.USER_FIELD, status.getUser().getScreenName())
+						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
+						.append(Constant.TEXT_FIELD, status.getText());
+
 				if(Util.match(status.getText(), keywords)) {
-					MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-
-					// Accessing the database
-					MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-
-					// Creating document
-					System.out.println("Generating document...");
-					Document document = new Document(Constant.TWEET_FIELD, status.getId())
-							.append(Constant.DATE_FIELD, new Date())
-							.append(Constant.USER_FIELD, status.getUser().getScreenName())
-							.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
-							.append(Constant.TEXT_FIELD, status.getText());
-
-					//Creating a collection
-					if(database.getCollection(Constant.EVENTS_COLLECTION) == null)
-						database.createCollection(Constant.EVENTS_COLLECTION);
-
 					System.out.println("Generating occurrence...");
 					int eventId = storeOccurrence(document);
 					document.append(Constant.EVENT_FIELD, eventId);
 
 					// Retieving a collection
-					MongoCollection<Document> occurrences = database.getCollection(Constant.EVENTS_COLLECTION);
-					occurrences.insertOne(document);
-					System.out.println("Document inserted successfully!");
+					collection = database.getCollection(Constant.EVENTS_COLLECTION);
+				} else {
+					if(database.getCollection(Constant.IGNORED_COLLECTION).count() >= Constant.MAX_IGNORED_TWEETS) {
+						System.out.println("Cleaning ignored tweets collection...");
+						database.getCollection(Constant.IGNORED_COLLECTION).drop();
+						database.createCollection(Constant.IGNORED_COLLECTION);
+					}
 
-					mongo.close();
-					System.out.println("Connection closed...");
+					// Retieving a collection
+					collection = database.getCollection(Constant.IGNORED_COLLECTION);
 				}
+
+				collection.insertOne(document);
+				System.out.println("Document inserted successfully!");
+
+				mongo.close();
+				System.out.println("Connection closed...");
 			}
 		};
 

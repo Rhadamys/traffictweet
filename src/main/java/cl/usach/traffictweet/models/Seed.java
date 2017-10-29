@@ -6,6 +6,7 @@ import cl.usach.traffictweet.utils.Util;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -47,7 +48,9 @@ public class Seed implements ApplicationRunner {
         BufferedReader br = null;
         String line;
         try {
-            br = new BufferedReader(new FileReader("communes.csv"));
+            ClassLoader classLoader = getClass().getClassLoader();
+            InputStream file = classLoader.getResourceAsStream("communes.csv");
+            br = new BufferedReader(new InputStreamReader(file, "UTF-8"));
             while ((line = br.readLine()) != null) {
                 String data[] = line.split(Constant.CSV_SPLIT_BY);
                 communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));

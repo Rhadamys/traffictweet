@@ -25,3 +25,4 @@ nbdist/
 lucene/
 .nb-gradle/
 src/main/resources/static/node_modules/
+src/main/resources/twitter4j.properties
