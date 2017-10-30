@@ -33,6 +33,9 @@ public class TrafficTweetApplication {
 		if(database.getCollection(Constant.EVENTS_COLLECTION) == null)
 			database.createCollection(Constant.EVENTS_COLLECTION);
 
+		if(database.getCollection(Constant.POSSIBLE_COLLECTION) == null)
+			database.createCollection(Constant.POSSIBLE_COLLECTION);
+
 		if(database.getCollection(Constant.IGNORED_COLLECTION) == null)
 			database.createCollection(Constant.IGNORED_COLLECTION);
 
