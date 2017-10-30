@@ -28,13 +28,15 @@ import java.util.*;
 
 @Component
 public class TwitterStreaming implements ApplicationRunner {
+	private static final int MAX_LAST_TWEETS = 5;
+
 	private OccurrenceRepository occurrenceRepository;
 	private CategoryRepository categoryRepository;
 	private CommuneRepository communeRepository;
 
-
 	private final TwitterStream twitterStream;
 	private List<String> keywords;
+	private List<String> lastTweets;
 
 	@Autowired
 	public TwitterStreaming(
@@ -45,6 +47,7 @@ public class TwitterStreaming implements ApplicationRunner {
 		this.occurrenceRepository = occurrenceRepository;
 		this.communeRepository = communeRepository;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
+		this.lastTweets = new ArrayList<>();
 		loadKeywords();
 	}
 
@@ -97,16 +100,33 @@ public class TwitterStreaming implements ApplicationRunner {
 						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
 						.append(Constant.TEXT_FIELD, status.getText());
 
-				MatchCase matchPercent = Util.match(status.getText(), keywords);
-				System.out.println("Tweet, probability of be a valid event: " + matchPercent);
-				if(matchPercent == MatchCase.MATCH) {
+				boolean isTheSame = false;
+				int i = 0;
+				while(!isTheSame && i < MAX_LAST_TWEETS) {
+					String tweet = lastTweets.get(i);
+					if(Util.isSameText(status.getText(), tweet)) isTheSame = true;
+					i++;
+				}
+
+				if(!isTheSame) {
+					if(lastTweets.size() == MAX_LAST_TWEETS)
+						lastTweets.remove(0);
+					lastTweets.add(status.getText());
+				}
+
+				MatchCase matchCase = isTheSame ?
+						MatchCase.ALREADY_EXISTS :
+						Util.match(status.getText(), keywords);
+				System.out.println("Tweet, probability of be a valid event: " + matchCase);
+
+				if(matchCase == MatchCase.MATCH) {
 					System.out.println("Generating occurrence...");
 					int eventId = storeOccurrence(document);
 					document.append(Constant.EVENT_FIELD, eventId);
 
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
 				} else {
-					String collectionName = matchPercent == MatchCase.POSSIBLE ?
+					String collectionName = matchCase == MatchCase.POSSIBLE ?
 							Constant.POSSIBLE_COLLECTION :
 							Constant.IGNORED_COLLECTION;
 

@@ -3,6 +3,8 @@ package cl.usach.traffictweet.utils;
 import java.util.List;
 
 public class Util {
+    private static final int CHARS_TO_MATCH = 15;
+
     public static MatchCase match(String text, List<String> keywordsList) {
         text = clean(text);
         int keyMatch;
@@ -22,6 +24,12 @@ public class Util {
         }
 
         return possible ? MatchCase.POSSIBLE : MatchCase.UNPROBABLE;
+    }
+
+    public static boolean isSameText(String text1, String text2) {
+        String sub1 = clean(text1.substring(0, CHARS_TO_MATCH));
+        String sub2 = clean(text2.substring(0, CHARS_TO_MATCH));
+        return sub1.equals(sub2);
     }
 
     public static String clean(String text) {

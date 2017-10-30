@@ -1,158 +1,158 @@
-congestion,calle
-congestion,avenida
-congestion,avda
-congestion,ruta
-congestion,norte
-congestion,sur
-congestion,camino
-congestion,desde
-congestion,hasta
-congestion,por
-congestion,este
-congestion,oeste
-congestion,oriente
-congestion,poniente
-congestion,peaje
-congestion,esquina
-congestion,tunel
-congestion,cuesta
-congestion,cerro
-congestion,carretera
-congestion,autopista
-congestion,caletera
-congestion,av
-congestion,en,la,entrada
-congestion,en,la,salida
-congestion,por,la,entrada
-congestion,por,la,salida
-congestion,entrando,por
-congestion,saliendo,por
-congestion,entrando,en
-congestion,saliendo,en
-taco,calle
-taco,avenida
-taco,avda
-taco,ruta
-taco,norte
-taco,sur
-taco,camino
-taco,desde
-taco,hasta
-taco,por
-taco,este
-taco,oeste
-taco,oriente
-taco,poniente
-taco,peaje
-taco,esquina
-taco,tunel
-taco,cuesta
-taco,cerro
-taco,carretera
-taco,autopista
-taco,caletera
-taco,av
-taco,en,la,entrada
-taco,en,la,salida
-taco,por,la,entrada
-taco,por,la,salida
-taco,entrando,por
-taco,saliendo,por
-taco,entrando,en
-taco,saliendo,en
-atochamiento,vehicular
-accidente,calle
-accidente,avenida
-accidente,avda
-accidente,ruta
-accidente,norte
-accidente,sur
-accidente,camino
-accidente,esquina
-accidente,tunel
-accidente,cuesta
-accidente,cerro
-accidente,carretera
-accidente,autopista
-accidente,caletera
-accidente,av
-accidente,auto
-accidente,camion
-accidente,vehicular
-accidente,transito
-accidente,choque
-accidente,colision
-auto,chocado
-auto,choque
-auto,volcado
-auto,volcamiento
-camion,chocado
-camion,choque
-camion,volcado
-camion,volcamiento
-bus,chocado
-bus,choque
-bus,volcado
-bus,volcamiento
-choque,calle
-choque,avenida
-choque,avda
-choque,ruta
-choque,norte
-choque,sur
-choque,camino
-choque,esquina
-choque,tunel
-choque,cuesta
-choque,cerro
-choque,carretera
-choque,autopista
-choque,caletera
-choque,av
-choque,alcance
-colision,calle
-colision,avenida
-colision,avda
-colision,ruta
-colision,norte
-colision,sur
-colision,camino
-colision,esquina
-colision,tunel
-colision,cuesta
-colision,cerro
-colision,carretera
-colision,autopista
-colision,caletera
-colision,av
-colision,auto
-colision,camion
-colision,alcance
-semaforo,apagado
-semaforo,dañado
-semaforo,falla
-semaforo,fallo
-semaforo,mal,estado
-desvio,calle
-desvio,avenida
-desvio,avda
-desvio,ruta
-desvio,norte
-desvio,sur
-desvio,camino
-desvio,desde
-desvio,hasta
-desvio,este
-desvio,oeste
-desvio,oriente
-desvio,poniente
-desvio,esquina
-desvio,tunel
-desvio,cuesta
-desvio,cerro
-desvio,carretera
-desvio,autopista
-desvio,caletera
-desvio,av
-desvio,trabajo
-desvio,obra
+ congestion , calle 
+ congestion , avenida 
+ congestion , avda 
+ congestion , ruta 
+ congestion , norte 
+ congestion , sur 
+ congestion , camino 
+ congestion , desde 
+ congestion , hasta 
+ congestion , por 
+ congestion , este 
+ congestion , oeste 
+ congestion , oriente 
+ congestion , poniente 
+ congestion , peaje 
+ congestion , esquina 
+ congestion , tunel 
+ congestion , cuesta 
+ congestion , cerro 
+ congestion , carretera 
+ congestion , autopista 
+ congestion , caletera 
+ congestion , av 
+ congestion , en , la , entrada 
+ congestion , en , la , salida 
+ congestion , por , la , entrada 
+ congestion , por , la , salida 
+ congestion , entrando , por 
+ congestion , saliendo , por 
+ congestion , entrando , en 
+ congestion , saliendo , en 
+ taco , calle 
+ taco , avenida 
+ taco , avda 
+ taco , ruta 
+ taco , norte 
+ taco , sur 
+ taco , camino 
+ taco , desde 
+ taco , hasta 
+ taco ,  por  
+ taco , este 
+ taco , oeste 
+ taco , oriente 
+ taco , poniente 
+ taco , peaje 
+ taco , esquina 
+ taco , tunel 
+ taco , cuesta 
+ taco , cerro 
+ taco , carretera 
+ taco , autopista 
+ taco , caletera 
+ taco , av 
+ taco ,  en , la , entrada 
+ taco ,  en , la , salida 
+ taco ,  por , la , entrada 
+ taco ,  por , la , salida 
+ taco ,  entrando, por 
+ taco , saliendo , por 
+ taco ,  entrando, en 
+ taco , saliendo , en 
+ atochamiento , vehicular 
+ accidente , calle 
+ accidente , avenida 
+ accidente , avda 
+ accidente , ruta 
+ accidente , norte 
+ accidente , sur 
+ accidente , camino 
+ accidente , esquina 
+ accidente , tunel 
+ accidente , cuesta 
+ accidente , cerro 
+ accidente , carretera 
+ accidente , autopista 
+ accidente , caletera 
+ accidente , av 
+ accidente , auto 
+ accidente , camion 
+ accidente , vehicular 
+ accidente , transito 
+ accidente , choque 
+ accidente ,  colision   
+ auto  , chocado 
+ auto , choque 
+ auto , volcado 
+ auto , volcamiento 
+ camion , chocado 
+ camion , choque 
+ camion , volcado 
+ camion , volcamiento 
+ bus , chocado 
+ bus , choque 
+ bus , volcado 
+ bus , volcamiento 
+ choque , calle 
+ choque , avenida 
+ choque , avda 
+ choque , ruta 
+ choque , norte 
+ choque , sur 
+ choque , camino 
+ choque , esquina 
+ choque , tunel 
+ choque , cuesta 
+ choque , cerro 
+ choque , carretera 
+ choque , autopista 
+ choque , caletera 
+ choque , av 
+ choque , alcance 
+ colision , calle 
+ colision , avenida 
+ colision , avda 
+ colision , ruta 
+ colision , norte 
+ colision , sur 
+ colision , camino 
+ colision , esquina 
+ colision , tunel 
+ colision , cuesta 
+ colision , cerro 
+ colision , carretera 
+ colision , autopista 
+ colision , caletera 
+ colision , av 
+ colision , auto 
+ colision , camion 
+ colision , alcance 
+ semaforo , apagado 
+ semaforo , dañado 
+ semaforo , falla 
+ semaforo , fallo 
+ semaforo , mal , estado 
+ desvio , calle 
+ desvio , avenida 
+ desvio , avda 
+ desvio , ruta 
+ desvio , norte 
+ desvio , sur 
+ desvio , camino 
+ desvio , desde 
+ desvio , hasta 
+ desvio , este 
+ desvio , oeste 
+ desvio , oriente 
+ desvio , poniente 
+ desvio , esquina 
+ desvio , tunel 
+ desvio , cuesta 
+ desvio , cerro 
+ desvio , carretera 
+ desvio , autopista 
+ desvio , caletera 
+ desvio , av 
+ desvio , trabajo 
+ desvio , obra 

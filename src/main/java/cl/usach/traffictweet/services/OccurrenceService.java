@@ -25,7 +25,7 @@ public class OccurrenceService {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
     public Iterable<Occurrence> getAll() {
-        return occurrenceRepository.findAll();
+        return occurrenceRepository.findAllByOrderByDateDesc();
     }
 
     @RequestMapping(value = "/type/{categoryType}", method = RequestMethod.GET)
@@ -57,7 +57,7 @@ public class OccurrenceService {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
-        return occurrenceRepository.findByDateBetween(calendar.getTime(), now);
+        return occurrenceRepository.findByDateBetweenOrderByDateDesc(calendar.getTime(), now);
     }
 
     @RequestMapping(
@@ -67,7 +67,12 @@ public class OccurrenceService {
     public Iterable<Occurrence> getAllBetween(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        return occurrenceRepository.findByDateBetween(from, to);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(to);
+        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        return occurrenceRepository.findByDateBetweenOrderByDateDesc(from, calendar.getTime());
     }
 
 

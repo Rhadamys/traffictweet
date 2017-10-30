@@ -7,5 +7,6 @@ import java.util.Date;
 import java.util.List;
 
 public interface OccurrenceRepository extends CrudRepository<Occurrence,Integer>{
-    List<Occurrence> findByDateBetween(Date start, Date end);
+    List<Occurrence> findAllByOrderByDateDesc();
+    List<Occurrence> findByDateBetweenOrderByDateDesc(Date start, Date end);
 }
