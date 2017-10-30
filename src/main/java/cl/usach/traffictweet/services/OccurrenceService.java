@@ -10,9 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @CrossOrigin
@@ -28,6 +26,22 @@ public class OccurrenceService {
     @ResponseBody
     public Iterable<Occurrence> getAll() {
         return occurrenceRepository.findAll();
+    }
+
+    @RequestMapping(value = "/type/{categoryType}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Occurrence> findByCategory(@PathVariable("categoryType") String categoryType) {
+        Iterable<Occurrence> occurrences =  occurrenceRepository.findAll();
+        List<Occurrence> occurrencesType =  new ArrayList<>();
+        for (Occurrence occurrence: occurrences){
+            Iterable<Category> categories = occurrence.getCategories();
+            for (Category category: categories) {
+                if(category.getKey().equals(categoryType)){
+                    occurrencesType.add(occurrence);
+                }
+            }
+        }
+        return occurrencesType;
     }
 
     @RequestMapping(
