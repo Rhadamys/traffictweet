@@ -2,6 +2,7 @@ package cl.usach.traffictweet.models;
 
 import cl.usach.traffictweet.repositories.*;
 import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.MatchCase;
 import cl.usach.traffictweet.utils.Util;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -121,7 +122,7 @@ public class Seed implements ApplicationRunner {
                 for(Street street: commune.getStreets())
                     keywords.add(Util.clean(street.getName()));
 
-                if(Util.match(text, keywords) == 100) {
+                if(Util.match(text, keywords) == MatchCase.MATCH) {
                     occurrenceCommune = commune;
                     break;
                 }
@@ -135,7 +136,7 @@ public class Seed implements ApplicationRunner {
                 for (Keyword keyword : category.getKeywords())
                     keywords.add(keyword.getName());
 
-                if (Util.match(text, keywords) == 100) {
+                if (Util.match(text, keywords) == MatchCase.MATCH) {
                     category.addOccurrence(occurrence);
                     occurrence.addCategory(category);
                 }

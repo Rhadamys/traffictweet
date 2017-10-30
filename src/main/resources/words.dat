@@ -90,6 +90,10 @@ camion,chocado
 camion,choque
 camion,volcado
 camion,volcamiento
+bus,chocado
+bus,choque
+bus,volcado
+bus,volcamiento
 choque,calle
 choque,avenida
 choque,avda

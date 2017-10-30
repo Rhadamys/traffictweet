@@ -9,7 +9,6 @@ public class Constant {
     public static final String POSSIBLE_COLLECTION = "possible";
     public static final String IGNORED_COLLECTION = "ignored";
     public static final int MAX_IGNORED_TWEETS = 1000;
-    public static final int POSSIBLE_RATIO = 80;
 
     public static final String TWEET_FIELD = "tweet_id";
     public static final String DATE_FIELD = "occurrence_date";

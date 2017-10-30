@@ -6,6 +6,7 @@ import cl.usach.traffictweet.repositories.CategoryRepository;
 import cl.usach.traffictweet.repositories.CommuneRepository;
 import cl.usach.traffictweet.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.MatchCase;
 import cl.usach.traffictweet.utils.Util;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -53,7 +54,6 @@ public class TwitterStreaming implements ApplicationRunner {
 			keywords = IOUtils.readLines(
 					classLoader.getResourceAsStream("words.dat"),
 					"UTF-8");
-			System.out.println(keywords);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -97,22 +97,22 @@ public class TwitterStreaming implements ApplicationRunner {
 						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
 						.append(Constant.TEXT_FIELD, status.getText());
 
-				int matchPercent;
-				if((matchPercent = Util.match(status.getText(), keywords)) == 100) {
+				MatchCase matchPercent = Util.match(status.getText(), keywords);
+				System.out.println("Tweet, probability of be a valid event: " + matchPercent);
+				if(matchPercent == MatchCase.MATCH) {
 					System.out.println("Generating occurrence...");
 					int eventId = storeOccurrence(document);
 					document.append(Constant.EVENT_FIELD, eventId);
 
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
 				} else {
-					String collectionName = matchPercent >= Constant.POSSIBLE_RATIO ?
+					String collectionName = matchPercent == MatchCase.POSSIBLE ?
 							Constant.POSSIBLE_COLLECTION :
 							Constant.IGNORED_COLLECTION;
 
 					if(database.getCollection(collectionName).count() >= Constant.MAX_IGNORED_TWEETS) {
-						System.out.println("Cleaning ignored tweets collection...");
+						System.out.println("Cleaning " + collectionName + " tweets collection...");
 						database.getCollection(collectionName).drop();
-						database.createCollection(collectionName);
 					}
 
 					collection = database.getCollection(collectionName);
@@ -144,7 +144,6 @@ public class TwitterStreaming implements ApplicationRunner {
 		String user = document.get(Constant.USER_FIELD).toString();
 		String image = document.get(Constant.IMAGE_FIELD).toString();
 		String text = document.get(Constant.TEXT_FIELD).toString();
-		DateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy", Locale.ENGLISH);
 		Date date = document.getDate(Constant.DATE_FIELD);
 
 		Commune occurrenceCommune = null;
@@ -154,7 +153,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			for(Street street: commune.getStreets())
 				keywords.add(Util.clean(street.getName()));
 
-			if(Util.match(text, keywords) == 100) {
+			if(Util.match(text, keywords) == MatchCase.MATCH) {
 				occurrenceCommune = commune;
 				break;
 			}
@@ -168,7 +167,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			for (Keyword keyword : category.getKeywords())
 				keywords.add(keyword.getName());
 
-			if (Util.match(text, keywords) == 100) {
+			if (Util.match(text, keywords) == MatchCase.MATCH) {
 				category.addOccurrence(occurrence);
 				occurrence.addCategory(category);
 			}

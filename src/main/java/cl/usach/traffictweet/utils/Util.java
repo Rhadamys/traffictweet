@@ -3,9 +3,10 @@ package cl.usach.traffictweet.utils;
 import java.util.List;
 
 public class Util {
-    public static int match(String text, List<String> keywordsList) {
+    public static MatchCase match(String text, List<String> keywordsList) {
         text = clean(text);
-        int possible = 0, keyMatch;
+        int keyMatch;
+        boolean possible = false;
 
         for(String keywordMatch: keywordsList) {
             String[] keywords = keywordMatch.split(",");
@@ -15,12 +16,12 @@ public class Util {
                 if(text.contains(keyword)) keyMatch++;
 
             if(keyMatch == keywords.length)
-                return 100;
-            else if(keyMatch >= keywords.length / 2)
-                possible++;
+                return MatchCase.MATCH;
+            else if(text.contains(keywords[0]))
+                possible = true;
         }
 
-        return possible * 100 / keywordsList.size();
+        return possible ? MatchCase.POSSIBLE : MatchCase.UNPROBABLE;
     }
 
     public static String clean(String text) {
