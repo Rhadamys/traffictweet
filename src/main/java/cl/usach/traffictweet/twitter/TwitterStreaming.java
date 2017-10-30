@@ -11,6 +11,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.bcel.Const;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -96,22 +97,25 @@ public class TwitterStreaming implements ApplicationRunner {
 						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
 						.append(Constant.TEXT_FIELD, status.getText());
 
-				if(Util.match(status.getText(), keywords)) {
+				int matchPercent;
+				if((matchPercent = Util.match(status.getText(), keywords)) == 100) {
 					System.out.println("Generating occurrence...");
 					int eventId = storeOccurrence(document);
 					document.append(Constant.EVENT_FIELD, eventId);
 
-					// Retieving a collection
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
 				} else {
-					if(database.getCollection(Constant.IGNORED_COLLECTION).count() >= Constant.MAX_IGNORED_TWEETS) {
+					String collectionName = matchPercent >= Constant.POSSIBLE_RATIO ?
+							Constant.POSSIBLE_COLLECTION :
+							Constant.IGNORED_COLLECTION;
+
+					if(database.getCollection(collectionName).count() >= Constant.MAX_IGNORED_TWEETS) {
 						System.out.println("Cleaning ignored tweets collection...");
-						database.getCollection(Constant.IGNORED_COLLECTION).drop();
-						database.createCollection(Constant.IGNORED_COLLECTION);
+						database.getCollection(collectionName).drop();
+						database.createCollection(collectionName);
 					}
 
-					// Retieving a collection
-					collection = database.getCollection(Constant.IGNORED_COLLECTION);
+					collection = database.getCollection(collectionName);
 				}
 
 				collection.insertOne(document);
@@ -150,7 +154,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			for(Street street: commune.getStreets())
 				keywords.add(Util.clean(street.getName()));
 
-			if(Util.match(text, keywords)) {
+			if(Util.match(text, keywords) == 100) {
 				occurrenceCommune = commune;
 				break;
 			}
@@ -164,7 +168,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			for (Keyword keyword : category.getKeywords())
 				keywords.add(keyword.getName());
 
-			if (Util.match(text, keywords)) {
+			if (Util.match(text, keywords) == 100) {
 				category.addOccurrence(occurrence);
 				occurrence.addCategory(category);
 			}

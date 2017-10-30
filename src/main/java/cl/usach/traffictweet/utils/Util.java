@@ -3,22 +3,24 @@ package cl.usach.traffictweet.utils;
 import java.util.List;
 
 public class Util {
-    public static boolean match(String text, List<String> keywordsList) {
+    public static int match(String text, List<String> keywordsList) {
         text = clean(text);
-        if(text.startsWith("rt")) return false;
-        boolean matches;
+        int possible = 0, keyMatch;
+
         for(String keywordMatch: keywordsList) {
-            String[] keywords = keywordMatch.split(" ");
-            matches = true;
-            for(String keyword: keywords) {
-                if(!text.contains(keyword)) {
-                    matches = false;
-                    break;
-                }
-            }
-            if(matches) return true;
+            String[] keywords = keywordMatch.split(",");
+            keyMatch = 0;
+
+            for(String keyword: keywords)
+                if(text.contains(keyword)) keyMatch++;
+
+            if(keyMatch == keywords.length)
+                return 100;
+            else if(keyMatch >= keywords.length / 2)
+                possible++;
         }
-        return false;
+
+        return possible * 100 / keywordsList.size();
     }
 
     public static String clean(String text) {

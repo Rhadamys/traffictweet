@@ -121,7 +121,7 @@ public class Seed implements ApplicationRunner {
                 for(Street street: commune.getStreets())
                     keywords.add(Util.clean(street.getName()));
 
-                if(Util.match(text, keywords)) {
+                if(Util.match(text, keywords) == 100) {
                     occurrenceCommune = commune;
                     break;
                 }
@@ -135,7 +135,7 @@ public class Seed implements ApplicationRunner {
                 for (Keyword keyword : category.getKeywords())
                     keywords.add(keyword.getName());
 
-                if (Util.match(text, keywords)) {
+                if (Util.match(text, keywords) == 100) {
                     category.addOccurrence(occurrence);
                     occurrence.addCategory(category);
                 }
