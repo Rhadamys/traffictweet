@@ -15,7 +15,8 @@ public class Constant {
     public static final String USER_FIELD = "user";
     public static final String IMAGE_FIELD = "image";
     public static final String TEXT_FIELD = "text";
-    public static final String EVENT_FIELD = "event_id";
+    public static final String CATEGORIES_FIELD = "categories";
+    public static final String COMMUNE_FIELD = "commune";
 
-    public static final String CSV_SPLIT_BY = ";";
+    public static final String CSV_SPLIT_BY = ",";
 }

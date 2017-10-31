@@ -34,12 +34,12 @@ public class Commune {
 	@OneToMany(mappedBy = "commune", cascade = CascadeType.ALL)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@JsonIgnore
-	private Set<Occurrence> occurrences;
+	private Set<Street> streets;
 
 	@OneToMany(mappedBy = "commune", cascade = CascadeType.ALL)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@JsonIgnore
-	private Set<Street> streets;
+	private Set<Metric> metrics;
 
 	@Column(name="created_at")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -60,34 +60,33 @@ public class Commune {
 		this.x = Double.parseDouble(x);
 		this.y = Double.parseDouble(y);
 		this.z = Integer.parseInt(z);
-		this.occurrences = new HashSet<>();
 	}
 
 	public int getId() {
 		return id;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public double getX() {
 		return x;
 	}
+
 	public double getY() {
 		return y;
 	}
+
 	public int getZ() {
 		return z;
 	}
-	public Set<Occurrence> getOccurrences() {
-		return occurrences;
-	}
-	public void addOccurrence(Occurrence occurrence) {
-		this.occurrences.add(occurrence);
-	}
+
 	public Set<Street> getStreets() {
 		return streets;
 	}
-	public Date getCreatedAt() {
-		return createdAt;
+
+	public Set<Metric> getMetrics() {
+		return metrics;
 	}
 }

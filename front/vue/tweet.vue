@@ -1,30 +1,31 @@
 <template>
     <div class="panel">
         <div class="panel-heading">
-            <h4>
-                @{{ username }}
+            <div class="tweet-heading">
                 <img v-bind:src="image"
-                     class="pull-left img-circle img-responsive"
-                     style="padding: 0px; margin-right: 1em; height: 1.2em;"
+                     class="img-circle img-responsive img"
                      alt="Imagen de usuario"/>
-            </h4>
+                @{{ username }}
+            </div>
+            <i class="tweet-date">
+                {{ commune ? commune.name : 'Desconocida' }}&ensp;
+                <i class="fa fa-map-marker" aria-hidden="true"></i>
+            </i>
         </div>
         <div class="panel-body">
             <span v-for="category in categories" class="badge" v-bind:class="category.key">{{ category.name }}</span>
         </div>
         <div class="panel-body">
-            <b>Comuna:</b>&emsp;{{ commune ? commune.name : 'Desconocida' }}
+            {{ text }}
         </div>
-        <div class="panel-body">
-            {{ content }}
-        </div>
-        <div v-if="details" class="panel-footer">
-            <a class="btn-block text-right" v-bind:href="'#/occurrence/' + id">Ver detalles...</a>
+        <div v-if="details" class="panel-footer tweet-footer">
+            <i class="tweet-date">{{ dateString }}</i>
+            <a v-bind:href="'#/occurrence/' + tweetId">Ver detalles...</a>
         </div>
     </div>
 </template>
 <script>
 export default {
-    props: ["id", "image", "username", "content", "commune", "categories", "details"],
+    props: ["tweetId", "image", "username", "text", "commune", "categories", "details", "dateString"],
 }
 </script>

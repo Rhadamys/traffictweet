@@ -27,15 +27,20 @@ public class Category {
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "categories", cascade = CascadeType.ALL)
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @JsonIgnore
-    private Set<Occurrence> occurrences;
-
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @LazyCollection(LazyCollectionOption.FALSE)
     @JsonIgnore
     private Set<Keyword> keywords;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @JsonIgnore
+    private Set<Metric> metrics;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @JsonIgnore
+    private Set<CategoryMetric> categoryMetrics;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
@@ -51,32 +56,34 @@ public class Category {
     public Category(String name) {
         this.key = Util.clean(name);
         this.name = name;
-        this.occurrences = new HashSet<>();
         this.keywords = new HashSet<>();
     }
 
     public int getId() {
         return id;
     }
+
     public String getKey() {
         return key;
     }
+
     public String getName() {
         return name;
     }
-    public Set<Occurrence> getOccurrences() {
-        return occurrences;
-    }
-    public void addOccurrence(Occurrence occurrence) {
-        this.occurrences.add(occurrence);
-    }
+
     public Set<Keyword> getKeywords() {
         return keywords;
     }
+
     public void addKeyword(Keyword keyword) {
         this.keywords.add(keyword);
     }
-    public Date getCreatedAt() {
-        return createdAt;
+
+    public Set<Metric> getMetrics() {
+        return metrics;
+    }
+
+    public Set<CategoryMetric> getCategoryMetrics() {
+        return categoryMetrics;
     }
 }

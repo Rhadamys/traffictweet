@@ -3,11 +3,15 @@
         <div class="col-md-10 col-md-offset-1">
             <div class="panel panel-default" style="height: 80vh">
                 <div class="panel-body">
-                    <b style="padding-right: 1em; margin-right: 1em; border-right: 1px solid #bbbbbb">Reportados hoy</b>
-                    Accidentes: {{ accidentes }}&ensp;&ensp;
-                    Congestión: {{ congestion }}&ensp;&ensp;
-                    Desvíos: {{ desvios }}&ensp;&ensp;
-                    Semáforos: {{ semaforos }}&ensp;&ensp;
+                    <div v-if="metrics.length > 0" class="reports-heading">
+                        <b style="padding-right: 1em; margin-right: 1em; border-right: 1px solid #bbbbbb">Reportados hoy</b>
+                        <div class="report-item" v-for="metric in metrics">
+                            {{ metric.category.name }}: {{ metric.count }}
+                        </div>
+                    </div>
+                    <b v-else="metrics.length > 0" class="text-center report-empty">
+                        ¡No se han reportado nuevos eventos! <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
+                    </b>
                 </div>
                 <div id="map" class="panel-body" style="height: 100%; width: 100%"></div>
             </div>
@@ -20,33 +24,16 @@ import Tweet from './tweet.vue';
 export default {
     data: function () {
         return {
-            occurrences: [],
-            accidentes: 0,
-            congestion: 0,
-            desvios: 0,
-            semaforos: 0,
+            metrics: []
         }
     },
     components: {
         'tweet': Tweet
     },
     mounted: function () {
-        this.$http.get('http://162.243.187.88:9090/traffictweet/occurrences/today')
+        this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/today')
             .then(response=>{
-                this.occurrences = response.body;
-
-                this.occurrences.forEach((occurrence) => {
-                    occurrence.categories.forEach((category) => {
-                        if(category.key === 'accidente')
-                            this.accidentes++;
-                        else if(category.key === 'congestion')
-                            this.congestion++;
-                        else if(category.key === 'desvio')
-                            this.desvios++;
-                        else
-                            this.semaforos++;
-                    })
-                })
+                this.metrics = response.body;
             }, response=>{
                 console.log('Error cargando lista');
             });

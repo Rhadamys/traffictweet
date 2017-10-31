@@ -7,9 +7,16 @@
                 </div>
                 <div class="collapse navbar-collapse" id="app-navbar-collapse" style="padding-left: 10em">
                     <!-- Left Side Of Navbar -->
-                    <a href="#/" class="btn navbar-btn" role="button">Inicio</a>
-                    <a href="#/panel-tweets" class="btn navbar-btn" role="button">Panel de tweets</a>
-                    <a href="#/graficos" class="btn navbar-btn" role="button">Gráficos</a>
+                    <a href="#/" class="btn navbar-btn" role="button">
+                        <i class="fa fa-home" aria-hidden="true"></i>&ensp;
+                        Inicio
+                    </a>
+                    <a href="#/panel-tweets" class="btn navbar-btn" role="button">
+                        <i class="fa fa-twitter" aria-hidden="true"></i>&ensp;
+                        Panel de tweets</a>
+                    <a href="#/graficos" class="btn navbar-btn" role="button">
+                        <i class="fa fa-bar-chart" aria-hidden="true"></i>&ensp;
+                        Gráficos</a>
                     <a href="#/nosotros" class="btn navbar-btn" role="button">Nosotros</a>
                 </div>
             </div>

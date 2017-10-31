@@ -1,16 +1,17 @@
 package cl.usach.traffictweet.services;
 
-import cl.usach.traffictweet.models.Category;
 import cl.usach.traffictweet.models.Occurrence;
 import cl.usach.traffictweet.repositories.CategoryRepository;
-import cl.usach.traffictweet.repositories.OccurrenceRepository;
+import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.utils.Constant;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -20,14 +21,40 @@ public class OccurrenceService {
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private OccurrenceRepository occurrenceRepository;
+    private CommuneRepository communeRepository;
 
+    /**
+     * Return all occurrences.
+     * @return All occurrences.
+     */
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    public Iterable<Occurrence> getAll() {
-        return occurrenceRepository.findAllByOrderByDateDesc();
+    public List<Occurrence> getAll() {
+        return Occurrence.getAll(categoryRepository, communeRepository);
     }
 
+    /**
+     * Get an occurrence by tweet ID.
+     * @param tweetId Tweet ID.
+     * @return An occurrence matching given tweet ID.
+     */
+    @RequestMapping(
+            value = "/{tweetId}",
+            method = RequestMethod.GET)
+    @ResponseBody
+    public Occurrence getTweetById(@PathVariable("tweetId") String tweetId) {
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
+        Document filter = new Document(Constant.TWEET_FIELD, tweetId);
+        Document document = collection.find(filter).first();
+        return Occurrence.map(categoryRepository, communeRepository, document);
+    }
+
+    /*
     @RequestMapping(value = "/type/{categoryType}", method = RequestMethod.GET)
     @ResponseBody
     public List<Occurrence> findByCategory(@PathVariable("categoryType") String categoryType) {
@@ -128,5 +155,5 @@ public class OccurrenceService {
     public Occurrence create(@RequestBody Occurrence resource) {
         return occurrenceRepository.save(resource);
     }
-
+*/
 }

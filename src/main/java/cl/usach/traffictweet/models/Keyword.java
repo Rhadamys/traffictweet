@@ -42,13 +42,12 @@ public class Keyword {
     public int getId() {
         return id;
     }
+
     public String getName() {
         return name;
     }
+
     public Category getCategory() {
         return category;
-    }
-    public Date getCreatedAt() {
-        return createdAt;
     }
 }

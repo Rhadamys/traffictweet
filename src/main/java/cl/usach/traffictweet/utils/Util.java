@@ -1,12 +1,13 @@
 package cl.usach.traffictweet.utils;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class Util {
-    private static final int CHARS_TO_MATCH = 15;
-
     public static MatchCase match(String text, List<String> keywordsList) {
-        text = clean(text);
+        text = " " + clean(text) + " ";
         int keyMatch;
         boolean possible = false;
 
@@ -27,8 +28,9 @@ public class Util {
     }
 
     public static boolean isSameText(String text1, String text2) {
-        String sub1 = clean(text1.substring(0, CHARS_TO_MATCH));
-        String sub2 = clean(text2.substring(0, CHARS_TO_MATCH));
+        int charsToMatch = Math.min(text1.length(), text2.length()) / 2;
+        String sub1 = clean(text1.substring(0, charsToMatch));
+        String sub2 = clean(text2.substring(0, charsToMatch));
         return sub1.equals(sub2);
     }
 
@@ -39,5 +41,15 @@ public class Util {
         for(int i = 0; i < replace.length(); i++)
             text = text.replace(replace.charAt(i), with.charAt(i));
         return text;
+    }
+
+    public static Date getDateOnly(Date dateTime) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(dateTime);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 }

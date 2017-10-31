@@ -24,10 +24,15 @@ public class Lucene {
     public static final String LUCENE_INDEX_PATH = "lucene/index/";
     public Lucene() { }
 
-    @Scheduled(cron = "0 0 3 * * *") // 03:00 todos los días
+    @Scheduled(cron = "0 0 * * * *") // Cada hora
     private void updateIndex() {
         try {
-            Directory dir = FSDirectory.open(Paths.get(LUCENE_INDEX_PATH));
+            System.out.println("LUCENE: Updating index...");
+
+            String catalina = System.getProperty("catalina.base");
+            String lucene = catalina + "/webapps/traffictweet/lucene/";
+            Directory dir = FSDirectory.open(Paths.get(lucene));
+
             Analyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
             iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
@@ -62,6 +67,8 @@ public class Lucene {
 
             // Cerrar conexión con MongoDB
             mongo.close();
+
+            System.out.println("LUCENE: Index updated successfully...");
         } catch(IOException ioe) {
             System.out.println("Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
         }

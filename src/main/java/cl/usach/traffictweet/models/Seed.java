@@ -2,49 +2,43 @@ package cl.usach.traffictweet.models;
 
 import cl.usach.traffictweet.repositories.*;
 import cl.usach.traffictweet.utils.Constant;
-import cl.usach.traffictweet.utils.MatchCase;
-import cl.usach.traffictweet.utils.Util;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.apache.commons.io.IOUtils;
-import org.bson.Document;
+import cl.usach.traffictweet.utils.Month;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Component
 public class Seed implements ApplicationRunner {
     private CategoryRepository categoryRepository;
     private KeywordRepository keywordRepository;
     private CommuneRepository communeRepository;
-    private OccurrenceRepository occurrenceRepository;
     private StreetRepository streetRepository;
+    private MetricRepository metricRepository;
+    private CategoryMetricRepository categoryMetricRepository;
 
     @Autowired
     public Seed(
             CategoryRepository categoryRepository,
             KeywordRepository keywordRepository,
             CommuneRepository communeRepository,
-            OccurrenceRepository occurrenceRepository,
-            StreetRepository streetRepository) {
+            StreetRepository streetRepository,
+            MetricRepository metricRepository,
+            CategoryMetricRepository categoryMetricRepository) {
         this.categoryRepository = categoryRepository;
         this.keywordRepository = keywordRepository;
         this.communeRepository = communeRepository;
-        this.occurrenceRepository = occurrenceRepository;
         this.streetRepository = streetRepository;
+        this.metricRepository = metricRepository;
+        this.categoryMetricRepository = categoryMetricRepository;
     }
 
+    /**
+     * Populates table "Communes" using data from file "communes.csv"
+     */
     private void initCommunes() {
         BufferedReader br = null;
         String line;
@@ -70,11 +64,16 @@ public class Seed implements ApplicationRunner {
         }
     }
 
+    /**
+     * Populates table "Streets" using data from file "streets.csv"
+     */
     private void initStreets() {
         BufferedReader br = null;
         String line;
         try {
-            br = new BufferedReader(new FileReader("streets.csv"));
+            ClassLoader classLoader = getClass().getClassLoader();
+            InputStream file = classLoader.getResourceAsStream("streets.csv");
+            br = new BufferedReader(new InputStreamReader(file, "UTF-8"));
             while ((line = br.readLine()) != null) {
                 String[] datos = line.split(Constant.CSV_SPLIT_BY);
                 if (datos.length == 2 && streetRepository.findByName(datos[0]) == null) {
@@ -96,56 +95,44 @@ public class Seed implements ApplicationRunner {
                 }
             }
         }
-
-
     }
 
-    private void initOccurrences() {
-        // Abrir conexión con MongoDB
-        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-        MongoCollection<Document> events = database.getCollection(Constant.EVENTS_COLLECTION);
+    private void initMetrics() {
+        List<Occurrence> occurrences = Occurrence.getAll(categoryRepository, communeRepository);
+        for(Occurrence occurrence: occurrences) {
+            for(Category category: occurrence.getCategories()) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(occurrence.getDate());
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+                Month month = Month.values()[calendar.get(Calendar.MONTH)];
+                int year = calendar.get(Calendar.YEAR);
 
-        List<Category> categories = new ArrayList<>();
-        categoryRepository.findAll().forEach(categories::add);
-        Iterable<Commune> communes = communeRepository.findAll();
-        for(Document document: events.find()) {
-            String user = document.get(Constant.USER_FIELD).toString();
-            String image = document.get(Constant.IMAGE_FIELD).toString();
-            String text = document.get(Constant.TEXT_FIELD).toString();
-            Date date = document.getDate(Constant.DATE_FIELD);
+                // Metrics by category and commune
+                Metric metric = metricRepository.findByDayAndMonthAndYearAndCategoryAndCommune(
+                        day, month, year, category, occurrence.getCommune());
 
-            Commune occurrenceCommune = null;
-            for(Commune commune: communes) {
-                List<String> keywords = new ArrayList<>();
-                keywords.add(Util.clean(commune.getName()));
-                for(Street street: commune.getStreets())
-                    keywords.add(Util.clean(street.getName()));
+                if(metric == null)
+                    metric = new Metric(
+                            category,
+                            occurrence.getCommune(),
+                            day,
+                            month,
+                            year);
 
-                if(Util.match(text, keywords) == MatchCase.MATCH) {
-                    occurrenceCommune = commune;
-                    break;
-                }
-            }
+                metric.incrementCount();
+                metricRepository.save(metric);
 
-            Occurrence occurrence = occurrenceRepository.save(
-                    new Occurrence(user, image, text, date, occurrenceCommune));
+                // Metrics globally by category
+                CategoryMetric categoryMetric = categoryMetricRepository.findByDayAndMonthAndYearAndCategory(
+                        day, month, year, category);
 
-            for (Category category : categories) {
-                List<String> keywords = new ArrayList<>();
-                for (Keyword keyword : category.getKeywords())
-                    keywords.add(keyword.getName());
+                if(categoryMetric == null)
+                    categoryMetric = new CategoryMetric(category, day, month, year);
 
-                if (Util.match(text, keywords) == MatchCase.MATCH) {
-                    category.addOccurrence(occurrence);
-                    occurrence.addCategory(category);
-                }
+                categoryMetric.incrementCount();
+                categoryMetricRepository.save(categoryMetric);
             }
         }
-
-        categoryRepository.save(categories);
-        // Cerrar conexión con MongoDB
-        mongo.close();
     }
 
     public void run(ApplicationArguments args) {
@@ -171,9 +158,11 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("semaforo,mal,estado", semaforos));
         keywordRepository.save(new Keyword("fallo,semaforo", semaforos));
         keywordRepository.save(new Keyword("falla,semaforo", semaforos));
+        keywordRepository.save(new Keyword("luz,verde", semaforos));
+        keywordRepository.save(new Keyword("luz,roj", semaforos));
 
         initCommunes();
         //initStreets();
-        initOccurrences();
+        initMetrics();
     }
 }

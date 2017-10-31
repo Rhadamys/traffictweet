@@ -1,82 +1,133 @@
 package cl.usach.traffictweet.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
+import cl.usach.traffictweet.repositories.CategoryRepository;
+import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.Month;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 
-import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-@Entity
-@Table(name = "occurrences")
-@NamedNativeQueries({
-		@NamedNativeQuery(name = "Occurrence.findAll", query = "SELECT o FROM Occurrence o")})
 public class Occurrence {
-	@Id
-	@Column(name = "id", unique = true, nullable = false)
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private String tweetId;
+    private String username;
+    private String image;
+    private String text;
+    private Date date;
+    private String dateString;
+    private Commune commune;
+    private List<Category> categories;
+    
+    public Occurrence(String tweetId,
+                      String username,
+                      String imageUrl,
+                      String text,
+                      Date date,
+                      Commune commune,
+                      List<Category> categories) {
+        this.tweetId = tweetId;
+        this.username = username;
+        this.image = imageUrl;
+        this.text = text;
+        this.date = date;
 
-	@Column(name = "username", nullable = false)
-	private String username;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        Month month = Month.values()[calendar.get(Calendar.MONTH)];
+        int year = calendar.get(Calendar.YEAR);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        this.dateString = day + " de " + month + " de " + year + " a las " +
+                (hour < 10 ? "0" + hour: hour) + ":" + (minute < 10 ? "0" + minute: minute);
 
-	@Column(name = "image", nullable = false)
-	private String image;
+        this.commune = commune;
+        this.categories = categories;
+    }
 
-	@Column(name = "content", nullable = false)
-	private String content;
+    public String getTweetId() {
+        return tweetId;
+    }
 
-	@Column(name = "occurrence_date", nullable = false)
-	private Date date;
+    public String getUsername() {
+        return username;
+    }
 
-	@ManyToOne
-	@JoinColumn(name = "commune_id")
-	private Commune commune;
+    public String getImage() {
+        return image;
+    }
 
-	@ManyToMany(cascade = CascadeType.ALL)
-	@LazyCollection(LazyCollectionOption.FALSE)
-	@JoinTable(name = "categories_occurrences",
-			joinColumns = @JoinColumn(name = "occurrence_id", referencedColumnName = "id"),
-			inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
-	private Set<Category> categories;
+    public String getText() {
+        return text;
+    }
 
-	@Column(name="created_at")
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date createdAt;
+    public Date getDate() {
+        return date;
+    }
 
-	@PrePersist
-	void onCreate() {
-		this.createdAt = new Date();
-	}
+    public String getDateString() {
+        return dateString;
+    }
 
-	public Occurrence() { }
+    public Commune getCommune() {
+        return commune;
+    }
 
-	public Occurrence(
-			String username,
-			String image,
-			String text,
-			Date date,
-			Commune commune) {
-		this.username = username;
-		this.image = image;
-		this.content = text;
-		this.date = date;
-		this.commune = commune;
-		this.categories = new HashSet<>();
-	}
+    public List<Category> getCategories() {
+        return categories;
+    }
 
-	public int getId() { return id;	}
-	public String getUsername() { return username; }
-	public String getImage() { return image; }
-	public String getContent() { return content; }
-	public Date getDate() { return date; }
-	public Commune getCommune() { return commune; }
-	public Date getCreatedAt() { return createdAt; }
-	public Set<Category> getCategories() { return categories; }
-	public void addCategory(Category category) {
-		this.categories.add(category);
-	}
+    public static List<Occurrence> getAll(
+            CategoryRepository categoryRepository,
+            CommuneRepository communeRepository) {
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
+        Document sort = new Document(Constant.DATE_FIELD, -1);
+        Iterable<Document> documents = collection.find().sort(sort);
+        List<Occurrence> occurrences = new ArrayList<>();
+
+        for(Document document: documents)
+            occurrences.add(map(categoryRepository, communeRepository, document));
+
+        mongo.close();
+        return occurrences;
+    }
+
+    public static Occurrence map(
+            CategoryRepository categoryRepository,
+            CommuneRepository communeRepository,
+            Document document) {
+        Commune commune = communeRepository.findByName(document.getString(Constant.COMMUNE_FIELD));
+
+        List<Category> categories = new ArrayList<>();
+        Object categoriesObject = document.get(Constant.CATEGORIES_FIELD);
+        if(categoriesObject != null) {
+            if(categoriesObject instanceof String) {
+                categories.add(categoryRepository.findByKey(categoriesObject.toString()));
+            } else {
+                List<String> categoriesList = (ArrayList<String>) categoriesObject;
+                for(String categoryKey: categoriesList)
+                    categories.add(categoryRepository.findByKey(categoryKey));
+            }
+        }
+
+        return new Occurrence(
+                document.getString(Constant.TWEET_FIELD),
+                document.getString(Constant.USER_FIELD),
+                document.getString(Constant.IMAGE_FIELD),
+                document.getString(Constant.TEXT_FIELD),
+                document.getDate(Constant.DATE_FIELD),
+                commune,
+                categories);
+    }
 }
-
