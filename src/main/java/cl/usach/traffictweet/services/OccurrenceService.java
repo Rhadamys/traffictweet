@@ -9,8 +9,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -54,23 +56,28 @@ public class OccurrenceService {
         return Occurrence.map(categoryRepository, communeRepository, document);
     }
 
-    /*
-    @RequestMapping(value = "/type/{categoryType}", method = RequestMethod.GET)
+    /**
+     * Get an occurrence by category.
+     * @param categoryType Category.
+     * @return All occurrences that match the category.
+     */
+    @RequestMapping(value = "/type", method = RequestMethod.GET)
     @ResponseBody
-    public List<Occurrence> findByCategory(@PathVariable("categoryType") String categoryType) {
-        Iterable<Occurrence> occurrences =  occurrenceRepository.findAll();
+    public List<Occurrence> findByCategory(@RequestParam("category") String categoryType) {
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+        Document filter = new Document(Constant.CATEGORIES_FIELD, categoryType);
+        Document sort = new Document(Constant.DATE_FIELD, -1);
+        Iterable<Document> documents = collection.find(filter).sort(sort);
         List<Occurrence> occurrencesType =  new ArrayList<>();
-        for (Occurrence occurrence: occurrences){
-            Iterable<Category> categories = occurrence.getCategories();
-            for (Category category: categories) {
-                if(category.getKey().equals(categoryType)){
-                    occurrencesType.add(occurrence);
-                }
-            }
-        }
+        for (Document document: documents)
+            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
         return occurrencesType;
     }
 
+    /*
     @RequestMapping(
             value = "/today",
             method = RequestMethod.GET)
