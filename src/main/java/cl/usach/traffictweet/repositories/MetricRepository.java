@@ -12,4 +12,5 @@ import java.util.List;
 public interface MetricRepository extends CrudRepository<Metric,Integer>{
     List<Metric> findAllByDayAndMonthAndYearOrderByCategoryAsc(int day, Month month, int year);
     Metric findByDayAndMonthAndYearAndCategoryAndCommune(int day, Month month, int year, Category category, Commune commune);
+    Metric findByCategory_KeyAndCommune_Name(String category, String commune);
 }
