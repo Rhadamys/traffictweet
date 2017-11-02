@@ -2,9 +2,7 @@ package cl.usach.traffictweet.twitter;
 
 import cl.usach.traffictweet.models.Category;
 import cl.usach.traffictweet.models.*;
-import cl.usach.traffictweet.repositories.CategoryRepository;
-import cl.usach.traffictweet.repositories.CommuneRepository;
-import cl.usach.traffictweet.repositories.MetricRepository;
+import cl.usach.traffictweet.repositories.*;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.MatchCase;
 import cl.usach.traffictweet.utils.Util;
@@ -31,6 +29,8 @@ public class TwitterStreaming implements ApplicationRunner {
 	private CategoryRepository categoryRepository;
 	private CommuneRepository communeRepository;
 	private MetricRepository metricRepository;
+	private CategoryMetricRepository categoryMetricRepository;
+	private CommuneMetricRepository communeMetricRepository;
 
 	private final TwitterStream twitterStream;
 	private List<String> keywords;
@@ -40,10 +40,14 @@ public class TwitterStreaming implements ApplicationRunner {
 	public TwitterStreaming(
 			CategoryRepository categoryRepository,
 			CommuneRepository communeRepository,
-			MetricRepository metricRepository) {
+			MetricRepository metricRepository,
+			CategoryMetricRepository categoryMetricRepository,
+			CommuneMetricRepository communeMetricRepository) {
 		this.categoryRepository = categoryRepository;
 		this.communeRepository = communeRepository;
 		this.metricRepository = metricRepository;
+		this.categoryMetricRepository = categoryMetricRepository;
+		this.communeMetricRepository = communeMetricRepository;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
 		this.lastTweets = new ArrayList<>();
 		loadKeywords();
@@ -167,6 +171,7 @@ public class TwitterStreaming implements ApplicationRunner {
 
 			if(Util.match(text, keywords) == MatchCase.MATCH) {
 				occurrenceCommune = commune;
+				CommuneMetric.update(communeMetricRepository,occurrenceCommune);
 				break;
 			}
 		}
@@ -183,6 +188,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			if (Util.match(text, keywords) == MatchCase.MATCH) {
 				occurrenceCategories.add(category.getKey());
 				Metric.update(metricRepository, category, occurrenceCommune);
+				CategoryMetric.update(categoryMetricRepository,category);
 			}
 		}
 

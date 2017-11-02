@@ -41,6 +41,11 @@ public class Commune {
 	@JsonIgnore
 	private Set<Metric> metrics;
 
+	@OneToMany(mappedBy = "commune", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonIgnore
+	private Set<CommuneMetric> communeMetrics;
+
 	@Column(name="created_at")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdAt;

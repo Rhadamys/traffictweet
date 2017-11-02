@@ -19,6 +19,7 @@ public class Seed implements ApplicationRunner {
     private StreetRepository streetRepository;
     private MetricRepository metricRepository;
     private CategoryMetricRepository categoryMetricRepository;
+    private CommuneMetricRepository communeMetricRepository;
 
     @Autowired
     public Seed(
@@ -27,13 +28,15 @@ public class Seed implements ApplicationRunner {
             CommuneRepository communeRepository,
             StreetRepository streetRepository,
             MetricRepository metricRepository,
-            CategoryMetricRepository categoryMetricRepository) {
+            CategoryMetricRepository categoryMetricRepository,
+            CommuneMetricRepository communeMetricRepository) {
         this.categoryRepository = categoryRepository;
         this.keywordRepository = keywordRepository;
         this.communeRepository = communeRepository;
         this.streetRepository = streetRepository;
         this.metricRepository = metricRepository;
         this.categoryMetricRepository = categoryMetricRepository;
+        this.communeMetricRepository = communeMetricRepository;
     }
 
     /**
@@ -100,13 +103,12 @@ public class Seed implements ApplicationRunner {
     private void initMetrics() {
         List<Occurrence> occurrences = Occurrence.getAll(categoryRepository, communeRepository);
         for(Occurrence occurrence: occurrences) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(occurrence.getDate());
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            Month month = Month.values()[calendar.get(Calendar.MONTH)];
+            int year = calendar.get(Calendar.YEAR);
             for(Category category: occurrence.getCategories()) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(occurrence.getDate());
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-                Month month = Month.values()[calendar.get(Calendar.MONTH)];
-                int year = calendar.get(Calendar.YEAR);
-
                 // Metrics by category and commune
                 Metric metric = metricRepository.findByDayAndMonthAndYearAndCategoryAndCommune(
                         day, month, year, category, occurrence.getCommune());
@@ -132,6 +134,15 @@ public class Seed implements ApplicationRunner {
                 categoryMetric.incrementCount();
                 categoryMetricRepository.save(categoryMetric);
             }
+            // Metrics globally by commune
+            CommuneMetric communeMetric = communeMetricRepository.findByDayAndMonthAndYearAndCommune(
+                    day, month, year, occurrence.getCommune());
+
+            if(communeMetric == null)
+                communeMetric = new CommuneMetric(occurrence.getCommune(), day, month, year);
+
+            communeMetric.incrementCount();
+            communeMetricRepository.save(communeMetric);
         }
     }
 
