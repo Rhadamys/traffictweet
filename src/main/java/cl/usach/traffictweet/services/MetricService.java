@@ -38,17 +38,11 @@ public class MetricService {
             method = RequestMethod.GET)
     @ResponseBody
     public List<CommuneMetric> getAllByCommune() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
-        return communeMetricRepository.findAllByDayAndMonthAndYearOrderByCommuneAsc(day, month, year);
+        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(new Date());
     }
 
     /**
      * Get total amount of occurrences of a commune.
-     * @param String commune.
      * @return Amount of occurrences of a commune.
      */
     @RequestMapping(
@@ -56,39 +50,33 @@ public class MetricService {
     @ResponseBody
     public int getTotalOccurrencesByCommune(@RequestParam("commune") String commune) {
         CommuneMetric metric = communeMetricRepository.findByCommune_Name(commune);
-        int totalOccurrences = metric.getCount();
-        return totalOccurrences;
+        return metric.getCount();
     }
 
     /**
      * Get total amount of occurrences by commune and a date.
-     * @param String commune, Date date.
      * @return Amount of occurrences of a commune on an specific day.
      */
     @RequestMapping(
             method = RequestMethod.GET, params = {"commune", "date"})
     @ResponseBody
-    public int getTotalOccurrencesByCommuneAndDate(@RequestParam("commune") String commune,
-                                   @RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
-        CommuneMetric metric = communeMetricRepository.findByDayAndMonthAndYearAndCommune_Name(day,month,year,commune);
+    public int getTotalOccurrencesByCommuneAndDate(
+            @RequestParam("commune") String commune,
+            @RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
+        CommuneMetric metric = communeMetricRepository.findByMetricDateAndCommune_Name(date, commune);
         return metric.getCount();
     }
 
     /**
      * Get total amount of occurrences by category on a commune.
-     * @param String category, String commune.
      * @return Amount of occurrences of a commune on an specific category.
      */
     @RequestMapping(
             method = RequestMethod.GET, params = {"category", "commune"})
     @ResponseBody
-    public int getTotalOccurrencesByCategoryAndCommune(@RequestParam("category") String category,
-                                                   @RequestParam("commune") String commune) {
+    public int getTotalOccurrencesByCategoryAndCommune(
+            @RequestParam("category") String category,
+            @RequestParam("commune") String commune) {
         Metric metric = metricRepository.findByCategory_KeyAndCommune_Name(category,commune);
         return metric.getCount();
     }
@@ -98,23 +86,13 @@ public class MetricService {
             method = RequestMethod.GET)
     @ResponseBody
     public List<CategoryMetric> getAll() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
-        return categoryMetricRepository.findAllByDayAndMonthAndYearOrderByCategoryAsc(day, month, year);
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(new Date());
     }
 
     @RequestMapping(
             method = RequestMethod.GET, params = "date")
     @ResponseBody
     public List<CategoryMetric> getAll(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
-        return categoryMetricRepository.findAllByDayAndMonthAndYearOrderByCategoryAsc(day, month, year);
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
     }
 }

@@ -8,7 +8,7 @@
                 @{{ username }}
             </div>
             <i class="tweet-date">
-                {{ commune ? commune.name : 'Desconocida' }}&ensp;
+                {{ commune.name }}&ensp;
                 <i class="fa fa-map-marker" aria-hidden="true"></i>
             </i>
         </div>

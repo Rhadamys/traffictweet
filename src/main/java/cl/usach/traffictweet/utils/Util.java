@@ -12,7 +12,7 @@ public class Util {
         boolean possible = false;
 
         for(String keywordMatch: keywordsList) {
-            String[] keywords = keywordMatch.split(",");
+            String[] keywords = keywordMatch.split(Constant.CSV_SPLIT_BY);
             keyMatch = 0;
 
             for(String keyword: keywords)

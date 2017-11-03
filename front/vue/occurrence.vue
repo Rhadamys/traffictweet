@@ -31,13 +31,9 @@ export default {
             .then(response=>{
                 this.occurrence = response.body;
 
-                if(this.occurrence.commune) {
-                    this.map = L.map('map').setView(
-                        [this.occurrence.commune.x, this.occurrence.commune.y],
-                        this.occurrence.commune.z);
-                } else {
-                    this.map = L.map('map').setView([-33.6093118, -70.7915517], 9);
-                }
+                this.map = L.map('map').setView(
+                    [this.occurrence.commune.x, this.occurrence.commune.y],
+                    this.occurrence.commune.z);
 
                 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
                     maxZoom: 18,

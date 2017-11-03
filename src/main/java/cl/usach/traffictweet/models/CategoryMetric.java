@@ -1,8 +1,8 @@
 package cl.usach.traffictweet.models;
 
 import cl.usach.traffictweet.repositories.CategoryMetricRepository;
-import cl.usach.traffictweet.repositories.MetricRepository;
 import cl.usach.traffictweet.utils.Month;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -25,26 +25,16 @@ public class CategoryMetric {
     @Column(name = "count", nullable = false)
     private int count;
 
-    @Column(name = "day", nullable = false)
-    private int day;
-
-    @Enumerated(value = EnumType.ORDINAL)
-    @Column(name = "month", nullable = false)
-    private Month month;
-
-    @Column(name = "year", nullable = false)
-    private int year;
+    @Column(name = "metric_date", nullable = false)
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date metricDate;
 
     public CategoryMetric() { }
 
-    public CategoryMetric(Category category,
-                          int day,
-                          Month month,
-                          int year) {
+    public CategoryMetric(Category category, Date metricDate) {
         this.category = category;
-        this.day = day;
-        this.month = month;
-        this.year = year;
+        this.metricDate = metricDate;
         this.count = 0;
     }
 
@@ -56,16 +46,8 @@ public class CategoryMetric {
         return count;
     }
 
-    public int getDay() {
-        return day;
-    }
-
-    public Month getMonth() {
-        return month;
-    }
-
-    public int getYear() {
-        return year;
+    public Date getMetricDate() {
+        return metricDate;
     }
 
     public void incrementCount() {
@@ -79,16 +61,12 @@ public class CategoryMetric {
     public static void update(
             CategoryMetricRepository categoryMetricRepository,
             Category category) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
+        Date today = new Date();
 
-        CategoryMetric metric = categoryMetricRepository.findByDayAndMonthAndYearAndCategory(
-                day, month, year, category);
+        CategoryMetric metric = categoryMetricRepository
+                .findByMetricDateAndCategory(today, category);
 
-        if(metric == null) metric = new CategoryMetric(category, day, month, year);
+        if(metric == null) metric = new CategoryMetric(category, today);
         metric.incrementCount();
 
         categoryMetricRepository.save(metric);

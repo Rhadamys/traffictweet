@@ -103,43 +103,38 @@ public class Seed implements ApplicationRunner {
     private void initMetrics() {
         List<Occurrence> occurrences = Occurrence.getAll(categoryRepository, communeRepository);
         for(Occurrence occurrence: occurrences) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(occurrence.getDate());
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
-            Month month = Month.values()[calendar.get(Calendar.MONTH)];
-            int year = calendar.get(Calendar.YEAR);
+            Date occurrenceDate = occurrence.getDate();
             for(Category category: occurrence.getCategories()) {
                 // Metrics by category and commune
-                Metric metric = metricRepository.findByDayAndMonthAndYearAndCategoryAndCommune(
-                        day, month, year, category, occurrence.getCommune());
+                Metric metric = metricRepository
+                        .findByMetricDateAndCategoryAndCommune(occurrenceDate, category, occurrence.getCommune());
 
                 if(metric == null)
                     metric = new Metric(
                             category,
                             occurrence.getCommune(),
-                            day,
-                            month,
-                            year);
+                            occurrenceDate);
 
                 metric.incrementCount();
                 metricRepository.save(metric);
 
                 // Metrics globally by category
-                CategoryMetric categoryMetric = categoryMetricRepository.findByDayAndMonthAndYearAndCategory(
-                        day, month, year, category);
+                CategoryMetric categoryMetric = categoryMetricRepository
+                        .findByMetricDateAndCategory(occurrenceDate, category);
 
                 if(categoryMetric == null)
-                    categoryMetric = new CategoryMetric(category, day, month, year);
+                    categoryMetric = new CategoryMetric(category, occurrenceDate);
 
                 categoryMetric.incrementCount();
                 categoryMetricRepository.save(categoryMetric);
             }
+
             // Metrics globally by commune
-            CommuneMetric communeMetric = communeMetricRepository.findByDayAndMonthAndYearAndCommune(
-                    day, month, year, occurrence.getCommune());
+            CommuneMetric communeMetric = communeMetricRepository
+                    .findByMetricDateAndCommune(occurrenceDate, occurrence.getCommune());
 
             if(communeMetric == null)
-                communeMetric = new CommuneMetric(occurrence.getCommune(), day, month, year);
+                communeMetric = new CommuneMetric(occurrence.getCommune(), occurrenceDate);
 
             communeMetric.incrementCount();
             communeMetricRepository.save(communeMetric);

@@ -20,6 +20,7 @@ import twitter4j.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 @Component
@@ -160,10 +161,12 @@ public class TwitterStreaming implements ApplicationRunner {
 		List<Category> categories = new ArrayList<>();
 		categoryRepository.findAll().forEach(categories::add);
 		Iterable<Commune> communes = communeRepository.findAll();
+		Iterator<Commune> communeIterator = communes.iterator();
 
 		String text = document.get(Constant.TEXT_FIELD).toString();
-		Commune occurrenceCommune = null;
-		for(Commune commune: communes) {
+		Commune commune, occurrenceCommune = communeIterator.next();
+		boolean found = false;
+		while ((commune = communeIterator.next()) != null && !found) {
 			List<String> keywords = new ArrayList<>();
 			keywords.add(Util.clean(commune.getName()));
 			for(Street street: commune.getStreets())
@@ -171,13 +174,11 @@ public class TwitterStreaming implements ApplicationRunner {
 
 			if(Util.match(text, keywords) == MatchCase.MATCH) {
 				occurrenceCommune = commune;
-				CommuneMetric.update(communeMetricRepository,occurrenceCommune);
-				break;
+				found = true;
 			}
 		}
 
-		document.append(Constant.COMMUNE_FIELD,
-				occurrenceCommune == null ? null : occurrenceCommune.getName());
+		document.append(Constant.COMMUNE_FIELD, occurrenceCommune.getName());
 
 		List<String> occurrenceCategories = new ArrayList<String>();
 		for (Category category : categories) {
@@ -192,6 +193,7 @@ public class TwitterStreaming implements ApplicationRunner {
 			}
 		}
 
+		CommuneMetric.update(communeMetricRepository, occurrenceCommune);
 		document.append(Constant.CATEGORIES_FIELD, occurrenceCategories);
 		return document;
 	}
