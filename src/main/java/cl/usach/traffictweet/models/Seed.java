@@ -168,7 +168,7 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("luz,roj", semaforos));
 
         initCommunes();
-        //initStreets();
+        initStreets();
         initMetrics();
     }
 }
