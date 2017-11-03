@@ -13,4 +13,5 @@ public interface CommuneMetricRepository extends CrudRepository<CommuneMetric,In
     CommuneMetric findByMetricDateAndCommune(Date metricDate, Commune commune);
     CommuneMetric findByCommune_Name(String communeName);
     CommuneMetric findByMetricDateAndCommune_Name(Date metricDate, String communeName);
+    List<CommuneMetric> findByCommune_NameAndMetricDateBetweenOrderByMetricDateDesc(String communeName, Date from, Date to);
 }

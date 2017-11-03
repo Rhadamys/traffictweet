@@ -68,6 +68,25 @@ public class MetricService {
     }
 
     /**
+     * Get total amount of occurrences by commune between days.
+     * @return Amount of occurrences of a commune beetween two dates.
+     */
+    @RequestMapping(
+            method = RequestMethod.GET, params = {"commune", "from", "to"})
+    @ResponseBody
+    public int getTotalOccurrencesByCommuneAndDates(
+            @RequestParam("commune") String commune,
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
+        List<CommuneMetric> metrics= communeMetricRepository.findByCommune_NameAndMetricDateBetweenOrderByMetricDateDesc(commune,from,to);
+        int totalOccurrences = 0;
+        for (CommuneMetric metric : metrics) {
+            totalOccurrences = metric.getCount()+totalOccurrences;
+        }
+        return totalOccurrences;
+    }
+
+    /**
      * Get total amount of occurrences by category on a commune.
      * @return Amount of occurrences of a commune on an specific category.
      */
