@@ -10,9 +10,11 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -57,11 +59,11 @@ public class OccurrenceService {
     }
 
     /**
-     * Get an occurrence by category.
+     * Get all occurrences by category.
      * @param categoryType Category.
      * @return All occurrences that match the category.
      */
-    @RequestMapping(value = "/type", method = RequestMethod.GET)
+    @RequestMapping(value = "/type", method = RequestMethod.GET, params = "category")
     @ResponseBody
     public List<Occurrence> findByCategory(@RequestParam("category") String categoryType) {
         MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
@@ -76,6 +78,49 @@ public class OccurrenceService {
             occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
         return occurrencesType;
     }
+
+    /**
+     * Get all occurrence by commune.
+     * @param communeName Commune.
+     * @return All occurrences that match the commune.
+     */
+    @RequestMapping(value = "/type", method = RequestMethod.GET, params = "commune")
+    @ResponseBody
+    public List<Occurrence> findByCommune(@RequestParam("commune") String communeName) {
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+        Document filter = new Document(Constant.COMMUNE_FIELD, communeName);
+        Document sort = new Document(Constant.DATE_FIELD, -1);
+        Iterable<Document> documents = collection.find(filter).sort(sort);
+        List<Occurrence> occurrencesType =  new ArrayList<>();
+        for (Document document: documents)
+            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
+        return occurrencesType;
+    }
+
+
+    /**
+     * Get an occurrence by category.
+     * @param from Date, to Date.
+     * @return All occurrences that match the category.
+     */
+    /*@RequestMapping(method = RequestMethod.GET, params = {"from", "to"})
+    @ResponseBody
+    public List<Occurrence> findByCommune(@RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+                                          @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+        Document filter = new Document("date", from).append("date", to);
+        Iterable<Document> documents = collection.find(filter);
+        List<Occurrence> occurrencesType =  new ArrayList<>();
+        for (Document document: documents)
+            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
+        return occurrencesType;
+    }*/
 
     /*
     @RequestMapping(
