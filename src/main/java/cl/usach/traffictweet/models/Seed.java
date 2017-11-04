@@ -2,6 +2,7 @@ package cl.usach.traffictweet.models;
 
 import cl.usach.traffictweet.repositories.*;
 import cl.usach.traffictweet.twitter.Lucene;
+import cl.usach.traffictweet.twitter.Neo4j;
 import cl.usach.traffictweet.utils.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -144,6 +145,7 @@ public class Seed implements ApplicationRunner {
             communeMetricRepository.save(communeMetric);
         }
     }
+
     private void initKeywords(){
         Category accidente = categoryRepository.save(new Category("Accidente"));
         Category congestion = categoryRepository.save(new Category("Congestión"));
@@ -172,12 +174,14 @@ public class Seed implements ApplicationRunner {
     }
 
     public void run(ApplicationArguments args) {
-        /*ejecutar una vez el proyecto, para que se agreguen estos datos 1 vez,
-        * luego comentar los procedimientos init que aparecen a continuación*/
-        initCommunes();
         initKeywords();
-        initStreets();
+        initCommunes();
+
+        // TODO: Mejorar reconocimiento de comunas por calle. NO descomentar hasta entonces.
+        // initStreets();
+
         initMetrics();
         Lucene.createIndex();
+        Neo4j.runNeo4j();
     }
 }
