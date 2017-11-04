@@ -140,8 +140,7 @@ public class Seed implements ApplicationRunner {
             communeMetricRepository.save(communeMetric);
         }
     }
-
-    public void run(ApplicationArguments args) {
+    private void initKeywords(){
         Category accidente = categoryRepository.save(new Category("Accidente"));
         Category congestion = categoryRepository.save(new Category("Congestión"));
         Category desvio = categoryRepository.save(new Category("Desvío"));
@@ -166,9 +165,15 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("falla,semaforo", semaforos));
         keywordRepository.save(new Keyword("luz,verde", semaforos));
         keywordRepository.save(new Keyword("luz,roj", semaforos));
+    }
 
+    public void run(ApplicationArguments args) {
+        /*ejecutar una vez el proyecto, para que se agreguen estos datos 1 vez,
+        * luego comentar los procedimientos init que aparecen a continuación*/
         initCommunes();
+        initKeywords();
         initStreets();
         initMetrics();
+
     }
 }
