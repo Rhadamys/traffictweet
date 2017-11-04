@@ -6,11 +6,16 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.index.*;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,10 +23,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class Lucene {
-    public static final String LUCENE_INDEX_PATH = "lucene/index/";
     public Lucene() { }
 
     @Scheduled(cron = "0 0 * * * *") // Cada hora
@@ -35,7 +41,7 @@ public class Lucene {
 
             Analyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-            iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+            iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
             IndexWriter writer = new IndexWriter(dir,iwc);
 
@@ -75,54 +81,42 @@ public class Lucene {
 
     }
 
-    // TODO: Adecuar a nueva funcionalidad
-    /*
-    public List<Document> filtrarTweets(ConfigurableApplicationContext context){
-        List<Document> listDocuments = new ArrayList<>();
+    public List<Document> buscarIndice(String query){
+        List<org.apache.lucene.document.Document> listDocuments = new ArrayList<Document>();
         try{
-            IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(LUCENE_INDEX_PATH)));
+            String catalina = System.getProperty("catalina.base");
+            String lucene = catalina + "/webapps/traffictweet/lucene/";
+
+
+            IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(lucene)));
             IndexSearcher searcher = new IndexSearcher(reader);
             StandardAnalyzer analyzer = new StandardAnalyzer();
-            TopScoreDocCollector collector = TopScoreDocCollector.create(100);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(10);
 
-            BooleanQuery.Builder finalQuery = new BooleanQuery.Builder();
-            QueryParser textParser = new QueryParser("text", analyzer);
-            BooleanQuery.Builder textQueryBuilder = new BooleanQuery.Builder();
-            for(Keyword keyword: keywords) {
-                textQueryBuilder.add(textParser.parse(keyword.getName()), BooleanClause.Occur.SHOULD);
-            }
-            finalQuery.add(textQueryBuilder.build(), BooleanClause.Occur.MUST);
-
-            QueryParser locationParser = new QueryParser("location", analyzer);
-            Iterable<Commune> communes = context.getBean(CommuneRepository.class).findAll();
-            BooleanQuery.Builder locationQueryBuilder = new BooleanQuery.Builder();
-            for(Commune commune: communes) {
-                BooleanQuery.Builder communeQueryBuilder = new BooleanQuery.Builder();
-                communeQueryBuilder.add(locationParser.parse("Chile"), BooleanClause.Occur.MUST);
-                String[] partes = commune.getName().split(" ");
-                if(partes.length == 1)
-                    communeQueryBuilder.add(locationParser.parse(partes[0]), BooleanClause.Occur.MUST);
-                else {
-                    PhraseQuery phraseQuery = new PhraseQuery(0, "location", partes);
-                    communeQueryBuilder.add(phraseQuery, BooleanClause.Occur.MUST);
-                }
-                locationQueryBuilder.add(communeQueryBuilder.build(), BooleanClause.Occur.SHOULD);
-            }
-            finalQuery.add(locationQueryBuilder.build(), BooleanClause.Occur.MUST);
-            searcher.search(finalQuery.build(), collector);
-
+            Query q = new QueryParser(Constant.TEXT_FIELD, analyzer).parse(query);
+            searcher.search(q, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
             System.out.println("Found " + hits.length + " hits.");
-            for (ScoreDoc hit : hits) {
-                int docId = hit.doc;
-                Document document = searcher.doc(docId);
-                listDocuments.add(document);
+            for(int i=0; i < hits.length; ++i)
+            {
+                int docId = hits[i].doc;
+                org.apache.lucene.document.Document d = searcher.doc(docId);
+                listDocuments.add(d);
+                System.out.println("Tweet: " + d.get(Constant.TWEET_FIELD));
+                System.out.println("User: " + d.get(Constant.USER_FIELD));
+                System.out.println("Image: " + d.get(Constant.IMAGE_FIELD));
+                System.out.println("Text: " + d.get(Constant.TEXT_FIELD));
             }
             reader.close();
 
-        } catch(IOException | ParseException ex) {
-            Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
+        }
+
+        catch(IOException ex){
+//            Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
+        }
+        catch(ParseException ex){
+//            Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
         }
         return listDocuments;
-    }*/
+    }
 }

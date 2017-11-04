@@ -3,11 +3,14 @@ package cl.usach.traffictweet.services;
 import cl.usach.traffictweet.models.Occurrence;
 import cl.usach.traffictweet.repositories.CategoryRepository;
 import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.BSON;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -97,6 +100,24 @@ public class OccurrenceService {
         List<Occurrence> occurrencesType =  new ArrayList<>();
         for (Document document: documents)
             occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
+        return occurrencesType;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, params = "search")
+    @ResponseBody
+    public List<Occurrence> search(@RequestParam("search") String search) {
+        List<org.apache.lucene.document.Document> hits = new Lucene().buscarIndice(search);
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        // Accessing the database
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
+        List<Occurrence> occurrencesType =  new ArrayList<>();
+        for (org.apache.lucene.document.Document hit: hits) {
+            Document filter = new Document(Constant.TWEET_FIELD, hit.get(Constant.TWEET_FIELD));
+            Document document = collection.find(filter).first();
+            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
+        }
         return occurrencesType;
     }
 
