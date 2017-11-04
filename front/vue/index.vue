@@ -20,31 +20,144 @@
 </template>
 <script>
 import Tweet from './tweet.vue';
+import GeoJSON from './rm.json';
 
 export default {
     data: function () {
         return {
-            metrics: []
+            metrics: [],
+            communeMetrics: [],
+            rm: GeoJSON,
+            geojson: null,
+            info: null
         }
     },
     components: {
         'tweet': Tweet
     },
     mounted: function () {
+        this.putMap();
+
         this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/today')
-            .then(response=>{
+            .then(response => {
                 this.metrics = response.body;
-            }, response=>{
+            }, response => {
                 console.log('Error cargando lista');
             });
 
-        this.map = L.map('map').setView([-33.6093118, -70.7915517], 9);
+        this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/today/communes')
+            .then(response => {
+                this.putChoropleth(response.body);
+            }, response => {
+                console.log('Error cargando lista');
+            });
+    },
+    methods: {
+        putMap: function() {
+            this.map = L.map('map').setView([-33.6093118, -70.7915517], 9);
+            L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                maxZoom: 18,
+                id: 'mapbox.streets-basic',
+                accessToken: 'pk.eyJ1IjoicmhhZGFteXMiLCJhIjoiY2o4bzBoZGVxMWU3bzJ3cGZtdTJucXkyMiJ9.pkzq5crdrE9U5HpXdl6Ing'
+            }).addTo(this.map);
 
-        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-            maxZoom: 18,
-            id: 'mapbox.streets-basic',
-            accessToken: 'pk.eyJ1IjoicmhhZGFteXMiLCJhIjoiY2o4bzBoZGVxMWU3bzJ3cGZtdTJucXkyMiJ9.pkzq5crdrE9U5HpXdl6Ing'
-        }).addTo(this.map);
+            this.addPopUps();
+        },
+        putChoropleth: function(metrics) {
+            this.communeMetrics = metrics;
+            this.setMaxValue();
+            this.geojson = L.geoJSON(this.rm, {
+                style: this.style,
+                onEachFeature: this.onEachFeature
+            });
+            this.geojson.addTo(this.map);
+        },
+        addPopUps: function() {
+            this.info = L.control();
+
+            this.info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+                this.update();
+                return this._div;
+            };
+
+            // method that we will use to update the control based on feature properties passed
+            this.info.update = function (props) {
+                this._div.innerHTML =
+                    '<h4>Eventos por comuna</h4>' +
+                    (props ? '<b>' + props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br>'
+                    : '<br>Posicione el mouse sobre una comuna...');
+            };
+
+            this.info.addTo(this.map);
+        },
+        // Funciones para mapa coroplético
+        setMaxValue: function() {
+          let max = 0;
+          this.communeMetrics.forEach((metric) => {
+              if(metric.count > max) max = metric.count;
+          });
+          this.communeMetrics.max = max;
+        },
+        style: function(feature) {
+            let metric = this.findMetric(feature);
+            return {
+                fillColor: this.getColor(metric ? metric.count : 0),
+                weight: 2,
+                opacity: 0.8,
+                color: '#003933',
+                dashArray: '3',
+                fillOpacity: 0.75
+            };
+        },
+        findMetric: function(feature) {
+            let metricRet = null;
+            this.communeMetrics.forEach((metric) => {
+                if(metric.commune.name === feature.properties.Comuna) metricRet = metric;
+            });
+            return metricRet;
+        },
+        getColor: function(val) {
+            return val === 0 ? '#ffffe5' :
+                   val <= this.communeMetrics.max * 0.14 ? '#e5f5e0' :
+                   val <= this.communeMetrics.max * 0.28 ? '#c7e9c0' :
+                   val <= this.communeMetrics.max * 0.42 ? '#a1d99b' :
+                   val <= this.communeMetrics.max * 0.56 ? '#74c476' :
+                   val <= this.communeMetrics.max * 0.70 ? '#41ab5d' :
+                   val <= this.communeMetrics.max * 0.84 ? '#238b45' :
+                                                           '#005a32';
+        },
+        // Funciones para pop-ups
+        highlightFeature: function(e) {
+            var layer = e.target;
+
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+
+            this.info.update(this.findMetric(layer.feature));
+        },
+        resetHighlight: function(e) {
+            this.geojson.resetStyle(e.target);
+            this.info.update();
+        },
+        zoomToFeature: function(e) {
+            this.map.fitBounds(e.target.getBounds());
+        },
+        onEachFeature: function(feature, layer) {
+            layer.on({
+                mouseover: this.highlightFeature,
+                mouseout: this.resetHighlight,
+                click: this.zoomToFeature
+            });
+        }
     }
 }
 </script>

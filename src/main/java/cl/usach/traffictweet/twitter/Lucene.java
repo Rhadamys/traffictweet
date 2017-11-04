@@ -1,6 +1,7 @@
 package cl.usach.traffictweet.twitter;
 
 import cl.usach.traffictweet.utils.Constant;
+import cl.usach.traffictweet.utils.Util;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -22,22 +23,22 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class Lucene {
+
     public Lucene() { }
 
     @Scheduled(cron = "0 0 * * * *") // Cada hora
-    private void updateIndex() {
+    public static void createIndex() {
+        Path lucenePath = Paths.get(System.getProperty("catalina.base") + "/webapps/traffictweet/lucene/");
         try {
-            System.out.println("LUCENE: Updating index...");
-
-            String catalina = System.getProperty("catalina.base");
-            String lucene = catalina + "/webapps/traffictweet/lucene/";
-            Directory dir = FSDirectory.open(Paths.get(lucene));
+            System.out.println("LUCENE: Creating index...");
+            Directory dir = FSDirectory.open(lucenePath);
 
             Analyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
@@ -45,21 +46,16 @@ public class Lucene {
 
             IndexWriter writer = new IndexWriter(dir,iwc);
 
-            // Abrir conexión con MongoDB
             MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
             MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
             MongoCollection<org.bson.Document> events = database.getCollection(Constant.EVENTS_COLLECTION);
 
             for(org.bson.Document document : events.find()) {
-                String id = document.get(Constant.TWEET_FIELD).toString();
-                String user = document.get(Constant.USER_FIELD).toString();
-                String image = document.get(Constant.IMAGE_FIELD).toString();
-                String text = document.get(Constant.TEXT_FIELD).toString();
+                String tweetId = document.get(Constant.TWEET_FIELD).toString();
+                String text = Util.clean(document.get(Constant.TEXT_FIELD).toString());
 
                 org.apache.lucene.document.Document docLucene = new org.apache.lucene.document.Document();
-                docLucene.add(new TextField(Constant.TWEET_FIELD, id, Field.Store.YES));
-                docLucene.add(new TextField(Constant.USER_FIELD, user, Field.Store.YES));
-                docLucene.add(new TextField(Constant.IMAGE_FIELD, image, Field.Store.YES));
+                docLucene.add(new TextField(Constant.TWEET_FIELD, tweetId, Field.Store.YES));
                 docLucene.add(new TextField(Constant.TEXT_FIELD, text, Field.Store.YES));
 
                 if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
@@ -70,52 +66,36 @@ public class Lucene {
             }
 
             writer.close();
-
-            // Cerrar conexión con MongoDB
             mongo.close();
-
-            System.out.println("LUCENE: Index updated successfully...");
+            System.out.println("LUCENE: Index created successfully...");
         } catch(IOException ioe) {
             System.out.println("Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
         }
 
     }
 
-    public List<Document> buscarIndice(String query){
+    public static List<Document> search(String query) {
+        Path lucenePath = Paths.get(System.getProperty("catalina.base") + "/webapps/traffictweet/lucene/");
         List<org.apache.lucene.document.Document> listDocuments = new ArrayList<Document>();
-        try{
-            String catalina = System.getProperty("catalina.base");
-            String lucene = catalina + "/webapps/traffictweet/lucene/";
-
-
-            IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(lucene)));
+        query = Util.clean(query);
+        try{            
+            IndexReader reader = DirectoryReader.open(FSDirectory.open(lucenePath));
             IndexSearcher searcher = new IndexSearcher(reader);
             StandardAnalyzer analyzer = new StandardAnalyzer();
-            TopScoreDocCollector collector = TopScoreDocCollector.create(10);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(50);
 
             Query q = new QueryParser(Constant.TEXT_FIELD, analyzer).parse(query);
             searcher.search(q, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
             System.out.println("Found " + hits.length + " hits.");
-            for(int i=0; i < hits.length; ++i)
-            {
-                int docId = hits[i].doc;
-                org.apache.lucene.document.Document d = searcher.doc(docId);
+            for (ScoreDoc hit : hits) {
+                int docId = hit.doc;
+                Document d = searcher.doc(docId);
                 listDocuments.add(d);
-                System.out.println("Tweet: " + d.get(Constant.TWEET_FIELD));
-                System.out.println("User: " + d.get(Constant.USER_FIELD));
-                System.out.println("Image: " + d.get(Constant.IMAGE_FIELD));
-                System.out.println("Text: " + d.get(Constant.TEXT_FIELD));
             }
             reader.close();
-
-        }
-
-        catch(IOException ex){
-//            Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
-        }
-        catch(ParseException ex){
-//            Logger.getLogger(Lucene.class.getName()).log(Level.SEVERE,null,ex);
+        } catch(IOException | ParseException ex) {
+            ex.printStackTrace();
         }
         return listDocuments;
     }

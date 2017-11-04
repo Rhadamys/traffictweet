@@ -16,7 +16,7 @@
             <span v-for="category in categories" class="badge" v-bind:class="category.key">{{ category.name }}</span>
         </div>
         <div class="panel-body">
-            {{ text }}
+            <div v-html="parsedText"></div>
         </div>
         <div v-if="details" class="panel-footer tweet-footer">
             <i class="tweet-date">{{ dateString }}</i>
@@ -27,5 +27,24 @@
 <script>
 export default {
     props: ["tweetId", "image", "username", "text", "commune", "categories", "details", "dateString"],
+    data: function() {
+        let urlRegex = /(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/g;
+        let hashTagRegex = /\B(\#[\wáéíóúñÁÉÍÓÚÑ]+\b)/g;
+        let usernameRegex = /\B(\@\w+\b)/g;
+        let parsedText = this.text
+            .replace(urlRegex, function(url) {
+                return '<a href="' + url + '" target="_blank">' + url + '</a>';
+            })
+            .replace(hashTagRegex, function(hashTag) {
+                return '<a href="https://twitter.com/hashtag/' + hashTag.substr(1) + '" target="_blank">' + hashTag + '</a>';
+            })
+            .replace(usernameRegex, function(username) {
+                return '<a href="https://twitter.com/' + username.substr(1) + '" target="_blank">' + username + '</a>';
+            });
+
+        return {
+            parsedText: parsedText
+        }
+    }
 }
 </script>

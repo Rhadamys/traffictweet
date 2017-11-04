@@ -1,15 +1,11 @@
 package cl.usach.traffictweet;
-import cl.usach.traffictweet.utils.Constant;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
-import java.util.Calendar;
 import java.util.TimeZone;
 
 @SpringBootApplication

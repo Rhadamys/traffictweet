@@ -1,15 +1,19 @@
 package cl.usach.traffictweet.models;
 
 import cl.usach.traffictweet.repositories.*;
+import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.utils.Constant;
-import cl.usach.traffictweet.utils.Month;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Date;
+import java.util.List;
 
 @Component
 public class Seed implements ApplicationRunner {
@@ -168,7 +172,10 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("luz,roj", semaforos));
 
         initCommunes();
-        initStreets();
+        //initStreets();
         initMetrics();
+
+        // Init Lucene index
+        Lucene.createIndex();
     }
 }

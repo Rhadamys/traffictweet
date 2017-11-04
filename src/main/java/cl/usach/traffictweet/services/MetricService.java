@@ -29,16 +29,32 @@ public class MetricService {
 
     @Autowired
     private CommuneMetricRepository communeMetricRepository;
+
+    @RequestMapping(
+            value = "/today",
+            method = RequestMethod.GET)
+    @ResponseBody
+    public List<CategoryMetric> getAll() {
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(new Date());
+    }
+
     /**
      * Get all occurrence by commune.
      * @return All occurrences by commune.
      */
     @RequestMapping(
-            value = "/todayCommunes",
+            value = "/today/communes",
             method = RequestMethod.GET)
     @ResponseBody
     public List<CommuneMetric> getAllByCommune() {
         return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(new Date());
+    }
+
+    @RequestMapping(
+            method = RequestMethod.GET, params = "date")
+    @ResponseBody
+    public List<CategoryMetric> getAllByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
     }
 
     /**
@@ -46,11 +62,11 @@ public class MetricService {
      * @return Amount of occurrences of a commune.
      */
     @RequestMapping(
-            method = RequestMethod.GET, params = "commune")
+            method = RequestMethod.GET,
+            params = "commune")
     @ResponseBody
     public int getTotalOccurrencesByCommune(@RequestParam("commune") String commune) {
-        CommuneMetric metric = communeMetricRepository.findByCommune_Name(commune);
-        return metric.getCount();
+        return communeMetricRepository.findByCommune_Name(commune).getCount();
     }
 
     /**
@@ -98,20 +114,5 @@ public class MetricService {
             @RequestParam("commune") String commune) {
         Metric metric = metricRepository.findByCategory_KeyAndCommune_Name(category,commune);
         return metric.getCount();
-    }
-
-    @RequestMapping(
-            value = "/today",
-            method = RequestMethod.GET)
-    @ResponseBody
-    public List<CategoryMetric> getAll() {
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(new Date());
-    }
-
-    @RequestMapping(
-            method = RequestMethod.GET, params = "date")
-    @ResponseBody
-    public List<CategoryMetric> getAll(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
     }
 }
