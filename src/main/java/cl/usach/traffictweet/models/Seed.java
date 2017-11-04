@@ -3,6 +3,7 @@ package cl.usach.traffictweet.models;
 import cl.usach.traffictweet.repositories.*;
 import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.twitter.Neo4j;
+import cl.usach.traffictweet.twitter.TwitterStreaming;
 import cl.usach.traffictweet.utils.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -15,9 +16,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class Seed implements ApplicationRunner {
+    private final static java.util.logging.Logger LOGGER = Logger.getLogger(Seed.class.getName());
+
     private CategoryRepository categoryRepository;
     private KeywordRepository keywordRepository;
     private CommuneRepository communeRepository;
@@ -57,7 +62,7 @@ public class Seed implements ApplicationRunner {
             while ((line = br.readLine()) != null) {
                 String data[] = line.split(Constant.CSV_SPLIT_BY);
                 communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));
-                System.out.println("Comuna: " + data[0]);
+                LOGGER.log(Level.INFO,"Nueva comuna: " + data[0]);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -87,9 +92,9 @@ public class Seed implements ApplicationRunner {
                 if (datos.length == 2 && streetRepository.findByName(datos[0]) == null) {
                     Commune commune = communeRepository.findByName(datos[1]);
                     streetRepository.save(new Street(datos[0], commune));
-                    System.out.println("Calle: " + datos[0] + "\tComuna: " + datos[1]);
+                    LOGGER.log(Level.INFO,"Nueva calle: " + datos[0] + "... Comuna: " + datos[1]);
                 } else {
-                    System.out.println("Calle eliminada...");
+                    LOGGER.log(Level.INFO,"Calle eliminada...");
                 }
             }
         } catch (IOException e) {
@@ -174,13 +179,14 @@ public class Seed implements ApplicationRunner {
     }
 
     public void run(ApplicationArguments args) {
-        // TODO: Mejorar reconocimiento de comunas por calle. NO descomentar hasta entonces.
-        /*ejecutar una vez el proyecto, para que se agreguen estos datos 1 vez,
-        * luego comentar los procedimientos init que aparecen a continuación*/
-        /*initCommunes();
+        initCommunes();
         initKeywords();
-        initStreets();
-        initMetrics();*/
+
+        // TODO: Mejorar reconocimiento de comunas por calle. NO descomentar hasta entonces.
+        // initStreets();
+
+        initMetrics();
+
         Lucene.createIndex();
         Neo4j.runNeo4j();
     }

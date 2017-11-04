@@ -27,9 +27,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class Lucene {
+    private final static Logger LOGGER = Logger.getLogger(Lucene.class.getName());
 
     public Lucene() { }
 
@@ -37,7 +40,7 @@ public class Lucene {
     public static void createIndex() {
         Path lucenePath = Paths.get(System.getProperty("catalina.base") + "/webapps/traffictweet/lucene/");
         try {
-            System.out.println("LUCENE: Creating index...");
+            LOGGER.log(Level.INFO, "Creating index...");
             Directory dir = FSDirectory.open(lucenePath);
 
             Analyzer analyzer = new StandardAnalyzer();
@@ -67,9 +70,9 @@ public class Lucene {
 
             writer.close();
             mongo.close();
-            System.out.println("LUCENE: Index created successfully...");
+            LOGGER.log(Level.INFO, "Index created successfully!");
         } catch(IOException ioe) {
-            System.out.println("Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
+            LOGGER.log(Level.WARNING, "Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
         }
 
     }
@@ -87,7 +90,8 @@ public class Lucene {
             Query q = new QueryParser(Constant.TEXT_FIELD, analyzer).parse(query);
             searcher.search(q, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
-            System.out.println("Found " + hits.length + " hits.");
+
+            LOGGER.log(Level.INFO, "Found " + hits.length + " hits.");
             for (ScoreDoc hit : hits) {
                 int docId = hit.doc;
                 Document d = searcher.doc(docId);

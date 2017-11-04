@@ -27,9 +27,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class TwitterStreaming implements ApplicationRunner {
+	private final static java.util.logging.Logger LOGGER = Logger.getLogger(TwitterStreaming.class.getName());
+
 	private static final int MAX_LAST_TWEETS = 5;
 
 	private CategoryRepository categoryRepository;
@@ -101,7 +105,7 @@ public class TwitterStreaming implements ApplicationRunner {
 				MongoCollection<Document> collection;
 
 				// Creating document
-				System.out.println("Generating document...");
+				LOGGER.log(Level.INFO, "Generating document...");
 				Document document = new Document(Constant.TWEET_FIELD, String.valueOf(status.getId()))
 						.append(Constant.DATE_FIELD, new Date())
 						.append(Constant.USER_FIELD, status.getUser().getScreenName())
@@ -125,47 +129,21 @@ public class TwitterStreaming implements ApplicationRunner {
 				MatchCase matchCase = isTheSame ?
 						MatchCase.ALREADY_EXISTS :
 						Util.match(status.getText(), keywords);
-				System.out.println("Tweet, probability of be a valid event: " + matchCase);
-
+				LOGGER.log(Level.INFO, "Tweet, probability of be a valid event: " + matchCase);
 				if(matchCase == MatchCase.MATCH) {
 					System.out.println("Generating occurrence...");
 					document = appendOccurrenceData(document);
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
 
-					// Inserting document into neo4j database as a node
-					Driver graphDriver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "secret"));
-					Session session = graphDriver.session();
-
-					String text = (String)document.get("text");
-					String commune= (String)document.get("commune");
-					String string_occurrence_date = document.get("occurrence_date").toString();
-					java.sql.Date occurrence_date = (java.sql.Date)document.get("occurrence_date");
-					Long occurrence_milliseconds = occurrence_date.getTime();
-
-					if(commune == null){
-						//session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"'})");
-					}
-					else{
-						session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"', commune: '"+commune+"'})");
-					}
-
-					session.run("MATCH (a:Occurrence) where true MATCH (b:Commune) where a.commune=b.name" +
-							" create (a)-[r:Ubicacion]->(b)");
-					session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.occurrence_milliseconds - b.occurrence_milliseconds <= 86400000" +
-							" AND a.commune = b.commune CREATE (a)-[r:Nearness]->(b)");
-
-					session.run("match (a)-[r]->(a) delete r"); // Se borran las relaciones de los nodos con si mismos
-
-					session.close();
-					graphDriver.close();
-
+					Neo4j.insertNode(document);
+					Neo4j.createRelationships();
 				} else {
 					String collectionName = matchCase == MatchCase.POSSIBLE ?
 							Constant.POSSIBLE_COLLECTION :
 							Constant.IGNORED_COLLECTION;
 
 					if(database.getCollection(collectionName).count() >= Constant.MAX_IGNORED_TWEETS) {
-						System.out.println("Cleaning " + collectionName + " tweets collection...");
+						LOGGER.log(Level.INFO, "Cleaning " + collectionName + " tweets collection...");
 						database.getCollection(collectionName).drop();
 					}
 
@@ -173,10 +151,9 @@ public class TwitterStreaming implements ApplicationRunner {
 				}
 
 				collection.insertOne(document);
-				System.out.println("Document inserted successfully!");
+				LOGGER.log(Level.INFO, "Document inserted successfully!");
 
 				mongo.close();
-				System.out.println("Connection closed...");
 			}
 		};
 
