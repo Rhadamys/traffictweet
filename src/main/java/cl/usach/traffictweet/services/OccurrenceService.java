@@ -8,22 +8,19 @@ import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.BSON;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @CrossOrigin
 @RequestMapping("/occurrences")
 public class OccurrenceService {
+    private static final Document SORT_BY_DATE_DESC = new Document(Constant.DATE_FIELD, -1);
+
     @Autowired
     private CategoryRepository categoryRepository;
 
@@ -37,7 +34,13 @@ public class OccurrenceService {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
     public List<Occurrence> getAll() {
-        return Occurrence.getAll(categoryRepository, communeRepository);
+        Date now = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return findBetweenDates(calendar.getTime(), now);
     }
 
     /**
@@ -51,14 +54,16 @@ public class OccurrenceService {
     @ResponseBody
     public Occurrence getTweetById(@PathVariable("tweetId") String tweetId) {
         MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-
-        // Accessing the database
         MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
         MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
 
         Document filter = new Document(Constant.TWEET_FIELD, tweetId);
         Document document = collection.find(filter).first();
-        return Occurrence.map(categoryRepository, communeRepository, document);
+
+        Occurrence occurrence = Occurrence.map(categoryRepository, communeRepository, document);
+
+        mongo.close();
+        return occurrence;
     }
 
     /**
@@ -70,16 +75,18 @@ public class OccurrenceService {
     @ResponseBody
     public List<Occurrence> findByCategory(@RequestParam("category") String categoryType) {
         MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        // Accessing the database
         MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
         MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
         Document filter = new Document(Constant.CATEGORIES_FIELD, categoryType);
-        Document sort = new Document(Constant.DATE_FIELD, -1);
-        Iterable<Document> documents = collection.find(filter).sort(sort);
-        List<Occurrence> occurrencesType =  new ArrayList<>();
+        Iterable<Document> documents = collection.find(filter).sort(SORT_BY_DATE_DESC);
+
+        List<Occurrence> occurrences =  new ArrayList<>();
         for (Document document: documents)
-            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
-        return occurrencesType;
+            occurrences.add(Occurrence.map(categoryRepository, communeRepository, document));
+
+        mongo.close();
+        return occurrences;
     }
 
     /**
@@ -87,146 +94,82 @@ public class OccurrenceService {
      * @param communeName Commune.
      * @return All occurrences that match the commune.
      */
-    @RequestMapping(value = "/type", method = RequestMethod.GET, params = "commune")
+    @RequestMapping(
+            value = "/type",
+            method = RequestMethod.GET,
+            params = "commune")
     @ResponseBody
     public List<Occurrence> findByCommune(@RequestParam("commune") String communeName) {
         MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        // Accessing the database
         MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
         MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
         Document filter = new Document(Constant.COMMUNE_FIELD, communeName);
-        Document sort = new Document(Constant.DATE_FIELD, -1);
-        Iterable<Document> documents = collection.find(filter).sort(sort);
-        List<Occurrence> occurrencesType =  new ArrayList<>();
+        Iterable<Document> documents = collection.find(filter).sort(SORT_BY_DATE_DESC);
+
+        List<Occurrence> occurrences =  new ArrayList<>();
         for (Document document: documents)
-            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
-        return occurrencesType;
+            occurrences.add(Occurrence.map(categoryRepository, communeRepository, document));
+
+        mongo.close();
+        return occurrences;
     }
 
-    @RequestMapping(method = RequestMethod.GET, params = "search")
+    @RequestMapping(
+            method = RequestMethod.GET,
+            params = "search")
     @ResponseBody
     public List<Occurrence> search(@RequestParam("search") String search) {
-        List<org.apache.lucene.document.Document> hits = new Lucene().buscarIndice(search);
+        List<org.apache.lucene.document.Document> hits = Lucene.search(search);
+
         MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        // Accessing the database
         MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
         MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
 
-        List<Occurrence> occurrencesType =  new ArrayList<>();
+        List<Occurrence> occurrences =  new ArrayList<>();
         for (org.apache.lucene.document.Document hit: hits) {
             Document filter = new Document(Constant.TWEET_FIELD, hit.get(Constant.TWEET_FIELD));
             Document document = collection.find(filter).first();
-            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
+            occurrences.add(Occurrence.map(categoryRepository, communeRepository, document));
         }
-        return occurrencesType;
-    }
 
+        mongo.close();
+        occurrences.sort((o1, o2) -> -o1.getDate().compareTo(o2.getDate()));
+        return occurrences;
+    }
 
     /**
      * Get an occurrence by category.
-     * @param from Date, to Date.
+     * @param from Date
+     * @param to Date.
      * @return All occurrences that match the category.
      */
-    /*@RequestMapping(method = RequestMethod.GET, params = {"from", "to"})
-    @ResponseBody
-    public List<Occurrence> findByCommune(@RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
-                                          @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        // Accessing the database
-        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
-        Document filter = new Document("date", from).append("date", to);
-        Iterable<Document> documents = collection.find(filter);
-        List<Occurrence> occurrencesType =  new ArrayList<>();
-        for (Document document: documents)
-            occurrencesType.add(Occurrence.map(categoryRepository, communeRepository, document));
-        return occurrencesType;
-    }*/
-
-    /*
     @RequestMapping(
-            value = "/today",
-            method = RequestMethod.GET)
+            method = RequestMethod.GET,
+            params = {"from", "to"})
     @ResponseBody
-    public Iterable<Occurrence> getAllOfToday() {
-        Date now = new Date();
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        calendar.set(Calendar.HOUR, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-
-        return occurrenceRepository.findByDateBetweenOrderByDateDesc(calendar.getTime(), now);
-    }
-
-    @RequestMapping(
-            value = "/between",
-            method = RequestMethod.GET)
-    @ResponseBody
-    public Iterable<Occurrence> getAllBetween(
+    public List<Occurrence> findBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(to);
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
-        return occurrenceRepository.findByDateBetweenOrderByDateDesc(from, calendar.getTime());
+
+        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
+        MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
+        MongoCollection<Document> collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
+        Document dates = new Document("$gte", from).append("$lt", calendar.getTime());
+        Document filter = new Document(Constant.DATE_FIELD, dates);
+        Iterable<Document> documents = collection.find(filter).sort(SORT_BY_DATE_DESC);
+
+        List<Occurrence> occurrences =  new ArrayList<>();
+        for (Document document: documents)
+            occurrences.add(Occurrence.map(categoryRepository, communeRepository, document));
+
+        mongo.close();
+        return occurrences;
     }
-
-
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    @ResponseBody
-    public Occurrence findOne(@PathVariable("id") Integer id) {
-        return occurrenceRepository.findOne(id);
-    }
-
-    @RequestMapping(value = "/{id}/categories", method = RequestMethod.GET)
-    @ResponseBody
-    public Set<Category> findCategories(@PathVariable("id") Integer id) {
-        return occurrenceRepository.findOne(id).getCategories();
-    }
-
-    @RequestMapping(
-            value = "/{occurrenceID}/categories/{categoryID}",
-            method = RequestMethod.POST)
-    @ResponseBody
-    public Set<Category> addCategory(
-            @PathVariable("occurrenceID") Integer occurrenceID,
-            @PathVariable("categoryID") Integer categoryID,
-            HttpServletResponse httpResponse) {
-        if(!occurrenceRepository.exists(occurrenceID)) {
-            httpResponse.setStatus(HttpStatus.NOT_FOUND.value());
-            return null;
-        }
-        Occurrence occurrence = occurrenceRepository.findOne(occurrenceID);
-
-        for(Category occurrencesCategory: occurrence.getCategories()) {
-            if(occurrencesCategory.getId() == categoryID) {
-                httpResponse.setStatus(HttpStatus.NOT_MODIFIED.value());
-                return null;
-            }
-        }
-
-        if(!categoryRepository.exists(categoryID)) {
-            httpResponse.setStatus(HttpStatus.NOT_FOUND.value());
-            return null;
-        }
-        Category category = categoryRepository.findOne(categoryID);
-
-        occurrence.addCategory(category);
-        category.addOccurrence(occurrence);
-        categoryRepository.save(category);
-        httpResponse.setStatus(HttpStatus.CREATED.value());
-        return occurrenceRepository.save(occurrence).getCategories();
-    }
-
-    @RequestMapping(method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public Occurrence create(@RequestBody Occurrence resource) {
-        return occurrenceRepository.save(resource);
-    }
-*/
 }

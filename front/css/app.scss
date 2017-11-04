@@ -116,6 +116,36 @@ body {
     justify-content: space-between;
 }
 
+.loading {
+    color: #777777;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.date-header {
+    color: #777777;
+    border-bottom: 1px solid #777777;
+    padding-bottom: 0.25em;
+    margin-bottom: 1em;
+}
+
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    width: 15vw;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+
 /* Otros elementos */
 a {
     color: $main-color;
