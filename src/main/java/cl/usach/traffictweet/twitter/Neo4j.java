@@ -58,9 +58,10 @@ public class Neo4j {
             Document doc = cursor.next();
             String text = (String)doc.get(Constant.TEXT_FIELD);
             String comuna = (String)doc.get(Constant.COMMUNE_FIELD);
+            Date occurrence_date = doc.getDate(Constant.DATE_FIELD);
             String string_occurrence_date = occurrence_date.toString();
             Long occurrence_milliseconds = occurrence_date.getTime();
-            Date occurrence_date = doc.getDate(Constant.DATE_FIELD);
+
             if(comuna == null){
                 session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:"+occurrence_milliseconds+", text:'"+text+"'})");
             }
