@@ -11,12 +11,17 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
+import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import twitter4j.*;
 
+//import javax.websocket.Session;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -126,6 +131,34 @@ public class TwitterStreaming implements ApplicationRunner {
 					System.out.println("Generating occurrence...");
 					document = appendOccurrenceData(document);
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
+
+					// Inserting document into neo4j database as a node
+					Driver graphDriver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "secret"));
+					Session session = graphDriver.session();
+
+					String text = (String)document.get("text");
+					String commune= (String)document.get("commune");
+					String string_occurrence_date = document.get("occurrence_date").toString();
+					java.sql.Date occurrence_date = (java.sql.Date)document.get("occurrence_date");
+					Long occurrence_milliseconds = occurrence_date.getTime();
+
+					if(commune == null){
+						session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"'})");
+					}
+					else{
+						session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"', commune: '"+commune+"'})");
+					}
+
+					session.run("MATCH (a:Occurrence) where true MATCH (b:Commune) where a.commune=b.name" +
+							" create (a)-[r:Ubicacion]->(b)");
+					session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.occurrence_milliseconds - b.occurrence_milliseconds <= 86400000" +
+							" AND a.commune = b.commune CREATE (a)-[r:Nearness]->(b)");
+
+					session.run("match (a)-[r]->(a) delete r"); // Se borran las relaciones de los nodos con si mismos
+
+					session.close();
+					graphDriver.close();
+
 				} else {
 					String collectionName = matchCase == MatchCase.POSSIBLE ?
 							Constant.POSSIBLE_COLLECTION :

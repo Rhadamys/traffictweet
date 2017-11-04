@@ -37,8 +37,9 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 
 	// Driver Neo4J
-	// compile('org.springframework.boot:spring-boot-starter-data-neo4j')
-	// compile group: 'org.neo4j', name: 'neo4j-ogm-embedded-driver', version: '3.0.0'
+	compile('org.springframework.boot:spring-boot-starter-data-neo4j')
+	compile group: 'org.neo4j', name: 'neo4j-ogm-embedded-driver', version: '3.0.0'
+	compile 'org.neo4j.driver:neo4j-java-driver:1.2.1'
 
 	// Driver MySQL
 	runtime('mysql:mysql-connector-java')
