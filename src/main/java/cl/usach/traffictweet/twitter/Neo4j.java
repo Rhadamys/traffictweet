@@ -69,23 +69,23 @@ public class Neo4j {
             String text = (String)doc.get("text");
             String comuna = (String)doc.get("commune");
             String string_occurrence_date = doc.get("occurrence_date").toString();
-            //Date occurrence_date = (Date)doc.get("occurrence_date");
-            //Long occurrence_milliseconds = occurrence_date.getTime();
+            java.util.Date occurrence_date = (java.util.Date) doc.get("occurrence_date");
+            Long occurrence_milliseconds = occurrence_date.getTime();
             if(comuna == null){
                 //
             }
             else{
-                session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', text:'"+text+"', commune: '"+comuna+"'})");
+                session.run("CREATE (a:Occurrence {text:'"+text+"', commune: '"+comuna+"',ocurrence_date:'"+string_occurrence_date+"'"+",occurrence_milliseconds:"+occurrence_milliseconds+"})");
             }
         }
 
         session.run("MATCH (a:Occurrence) where true MATCH (b:Commune) where a.commune=b.name" +
                 " create (a)-[r:Location]->(b)");
 
-        //session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.occurrence_milliseconds - b.occurrence_milliseconds <= 86400000" +
-        //        " AND a.commune = b.commune CREATE (a)-[r:Nearness]->(b)");
+        session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.occurrence_milliseconds - b.occurrence_milliseconds <= 86400000" +
+                " AND a.commune = b.commune CREATE (a)-[r:Nearness]->(b)");
 
-        //session.run("match (a)-[r]->(a) delete r"); // Se borran las relaciones de los nodos con si mismos
+        session.run("match (a)-[r]->(a) delete r"); // Se borran las relaciones de los nodos con si mismos
 
         mongo.close();
         session.close();

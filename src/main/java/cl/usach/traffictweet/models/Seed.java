@@ -174,10 +174,10 @@ public class Seed implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         /*ejecutar una vez el proyecto, para que se agreguen estos datos 1 vez,
         * luego comentar los procedimientos init que aparecen a continuación*/
-        initCommunes();
+        /*initCommunes();
         initKeywords();
         initStreets();
-        initMetrics();
+        initMetrics();*/
         Lucene.createIndex();
     }
 }
