@@ -63,7 +63,7 @@ public class Neo4j {
             Long occurrence_milliseconds = occurrence_date.getTime();
 
             if(comuna == null){
-                session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:"+occurrence_milliseconds+", text:'"+text+"'})");
+                //session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:"+occurrence_milliseconds+", text:'"+text+"'})");
             }
             else{
                 session.run("CREATE (a:Occurrence {text:'"+text+"', commune: '"+comuna+"',ocurrence_date:'"+string_occurrence_date+"'"+",occurrence_milliseconds:"+occurrence_milliseconds+"})");

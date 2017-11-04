@@ -143,7 +143,7 @@ public class TwitterStreaming implements ApplicationRunner {
 					Long occurrence_milliseconds = occurrence_date.getTime();
 
 					if(commune == null){
-						session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"'})");
+						//session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"'})");
 					}
 					else{
 						session.run("CREATE (a:Occurrence {occurrence_date:'"+string_occurrence_date+"', occurrence_milliseconds:'"+occurrence_milliseconds+"', text:'"+text+"', commune: '"+commune+"'})");
