@@ -2,18 +2,14 @@ package cl.usach.traffictweet.twitter;
 
 import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.Date;
 import java.util.logging.Level;
@@ -93,9 +89,9 @@ public class Neo4j {
 
         LOGGER.log(Level.INFO,"Creating relationships");
         session.run("MATCH (a:Occurrence) where true MATCH (b:Commune) where a.commune=b.name" +
-                " create (a)-[r:Ubicacion]->(b)");
-        session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.occurrence_milliseconds - b.occurrence_milliseconds <= 86400000" +
-                " AND a.commune = b.commune CREATE (a)-[r:Nearness]->(b)");
+                " create (a)-[r:UBICADO_EN]->(b)");
+        session.run("MATCH (a:Occurrence) where true MATCH (b:Occurrence) where a.millis - b.millis <= 86400000" +
+                " AND a.commune = b.commune CREATE (a)-[r:CERCANO_A]->(b)");
 
         session.run("match (a)-[r]->(a) delete r"); // Se borran las relaciones de los nodos con si mismos
 

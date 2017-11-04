@@ -73,7 +73,7 @@ export default {
                 this.tweetsOfToday();
             } else {
                 this.loading = true;
-                this.$http.get('http://localhost:9090/occurrences?search=' + this.search)
+                this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences?search=' + this.search)
                     .then(response => {
                         this.calendar = this.getOccurrencesCalendar(response.body);
                         this.loading = false;
