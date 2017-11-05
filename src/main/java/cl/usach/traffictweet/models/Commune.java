@@ -31,6 +31,14 @@ public class Commune {
 	@Column(name = "z", nullable = false)
 	private int z;
 
+	@ManyToMany
+	@JoinTable(name = "adjacent_communes",
+			joinColumns = @JoinColumn(name = "commune_id", referencedColumnName = "id", nullable = false),
+			inverseJoinColumns = @JoinColumn(name = "adjacent_id", referencedColumnName = "id", nullable = false))
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JsonIgnore
+	private Set<Commune> adjacentCommunes;
+
 	@OneToMany(mappedBy = "commune", cascade = CascadeType.ALL)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@JsonIgnore
@@ -65,6 +73,7 @@ public class Commune {
 		this.x = Double.parseDouble(x);
 		this.y = Double.parseDouble(y);
 		this.z = Integer.parseInt(z);
+		this.adjacentCommunes = new HashSet<>();
 	}
 
 	public int getId() {
@@ -85,6 +94,14 @@ public class Commune {
 
 	public int getZ() {
 		return z;
+	}
+
+	public Set<Commune> getAdjacentCommunes() {
+		return adjacentCommunes;
+	}
+
+	public void addAdjacentCommune(Commune adjacent) {
+		this.adjacentCommunes.add(adjacent);
 	}
 
 	public Set<Street> getStreets() {

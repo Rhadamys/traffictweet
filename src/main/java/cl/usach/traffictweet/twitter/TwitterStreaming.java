@@ -136,7 +136,6 @@ public class TwitterStreaming implements ApplicationRunner {
 					collection = database.getCollection(Constant.EVENTS_COLLECTION);
 
 					Neo4j.insertNode(document);
-					Neo4j.createRelationships();
 				} else {
 					String collectionName = matchCase == MatchCase.POSSIBLE ?
 							Constant.POSSIBLE_COLLECTION :

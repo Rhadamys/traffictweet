@@ -29,4 +29,5 @@ public class Constant {
     public static final String COMMUNE_FIELD = "commune";
 
     public static final String CSV_SPLIT_BY = ",";
+    public static final String UNKNOWN_COMMUNE = "Comuna desconocida";
 }

@@ -1,0 +1,42 @@
+Buin,Isla de Maipo,Paine,Pirque,San Bernardo
+Cerrillos,Maipú,Padre Hurtado,Peñaflor,San Bernardo,Talagante
+Cerro Navia,Lo Prado,Pudahuel,Quinta Normal,Renca
+Colina,Huechuraba,Quilicura
+Conchalí,Huechuraba,Independencia,Quilicura,Recoleta,Renca
+El Bosque,La Cisterna,La Pintana,San Bernardo,San Ramón
+El Monte,Isla de Maipo,Melipilla,Peñaflor,Talagante
+Estación Central,Cerrillos,Lo Prado,Maipú,Pedro Aguirre Cerda,Pudahuel,Santiago,Quinta Normal
+Huechuraba,Conchalí,Quilicura,Recoleta,Vitacura
+Independencia,Conchalí,Quinta Normal,Recoleta,Renca,Santiago
+Isla de Maipo,El Monte,Talagante
+La Cisterna,El Bosque,Lo Espejo,San Miguel,San Ramón
+La Florida,La Granja,Macul,Peñalolén,Puente Alto
+La Granja,La Florida,La Pintana,San Joaquín,San Ramón
+La Pintana,El Bosque,La Florida,La Granja,Puente Alto,San Ramón
+La Reina,Las Condes,Ñuñoa,Peñalolén
+Las Condes,La Reina,Providencia,Vitacura
+Lo Barnechea,Las Condes,Vitacura
+Lo Espejo,Cerrillos,La Cisterna,Pedro Aguirre Cerda
+Lo Prado,Cerro Navia,Estación Central,Pudahuel,Quinta Normal
+Macul,La Florida,Ñuñoa,Peñalolén,San Joaquín
+Maipú,Cerrillos,Pudahuel,Estación Central
+Melipilla,El Monte
+Ñuñoa,La Reina,Macul,Providencia,Santiago
+Padre Hurtado,Peñaflor
+Pedro Aguirre Cerda,Cerrillos,Estación Central,Lo Espejo,San Miguel,Santiago
+Peñaflor,Padre Hurtado
+Peñalolén,La Florida,La Reina,Macul,Ñuñoa
+Pirque,Puente Alto
+Providencia,Las Condes,Ñuñoa,Recoleta,Vitacura
+Pudahuel,Cerro Navia,Estación Central,Lo Prado,Maipú
+Puente Alto,La Florida,La Pintana
+Quilicura,Conchalí,Renca
+Quinta Normal,Cerro Navia,Estación Central,Lo Prado,Renca,Santiago
+Recoleta,Conchalí,Huechuraba,Independencia,Providencia,Santiago
+Renca,Cerro Navia,Conchalí,Independencia,Quilicura,Quinta Normal
+San Bernardo,El Bosque
+San Joaquín,La Granja,Macul,San Miguel,Santiago
+San Miguel,La Cisterna,Pedro Aguirre Cerda,San Joaquín,Santiago
+San Ramón,La Cisterna,La Granja,La Pintana
+Santiago,Estación Central,Independencia,Pedro Aguirre Cerda,Providencia,Ñuñoa,Quinta Normal,Recoleta,San Joaquín,San Miguel
+Vitacura,Las Condes,Huechuraba,Providencia,Recoleta

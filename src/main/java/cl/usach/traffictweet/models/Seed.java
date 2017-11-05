@@ -14,7 +14,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,14 +57,29 @@ public class Seed implements ApplicationRunner {
     private void initCommunes() {
         BufferedReader br = null;
         String line;
+        HashMap<String, Commune> communes = new HashMap<>();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             InputStream file = classLoader.getResourceAsStream("communes.csv");
             br = new BufferedReader(new InputStreamReader(file, "UTF-8"));
             while ((line = br.readLine()) != null) {
                 String data[] = line.split(Constant.CSV_SPLIT_BY);
-                communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));
+                Commune commune = communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));
                 LOGGER.log(Level.INFO,"Nueva comuna: " + data[0]);
+                communes.put(commune.getName(), commune);
+            }
+
+            file = classLoader.getResourceAsStream("adjacency.csv");
+            br.close();
+            br = new BufferedReader(new InputStreamReader(file, "UTF-8"));
+            while ((line = br.readLine()) != null) {
+                String data[] = line.split(Constant.CSV_SPLIT_BY);
+                Commune commune = communes.get(data[0]);
+                for(int i = 1; i < data.length; i++) {
+                    commune.addAdjacentCommune(communes.get(data[i]));
+                    LOGGER.log(Level.INFO, "Comuna " + commune.getName() + " <--- " + data[i]);
+                }
+                communeRepository.save(commune);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -188,6 +205,6 @@ public class Seed implements ApplicationRunner {
         initMetrics();
 
         Lucene.createIndex();
-        Neo4j.runNeo4j();
+        Neo4j.runNeo4j(communeRepository);
     }
 }
