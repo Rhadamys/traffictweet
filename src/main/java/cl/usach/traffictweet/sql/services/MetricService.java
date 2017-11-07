@@ -74,8 +74,25 @@ public class MetricService {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
+        return getMetricsByCommuneAndBetweenDates(commune, calendar.getTime(), now);
+    }
+
+    @RequestMapping(
+            method = RequestMethod.GET,
+            params = {"commune", "from", "to"})
+    @ResponseBody
+    public List<Metric> getMetricsByCommuneAndBetweenDates(
+            @RequestParam("commune") String commune,
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        calendar.setTime(to);
+        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+
         return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
-                commune, calendar.getTime(), now);
+                commune, from, calendar.getTime());
     }
 
     /**
