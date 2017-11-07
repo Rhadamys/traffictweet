@@ -79,6 +79,23 @@ public class MetricService {
 
     @RequestMapping(
             method = RequestMethod.GET,
+            params = {"commune", "date"})
+    @ResponseBody
+    public List<Metric> getMetricsByCommuneAndDate(
+            @RequestParam("commune") String commune,
+            @RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
+                commune, calendar.getTime(), date);
+    }
+
+    @RequestMapping(
+            method = RequestMethod.GET,
             params = {"commune", "from", "to"})
     @ResponseBody
     public List<Metric> getMetricsByCommuneAndBetweenDates(

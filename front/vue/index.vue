@@ -80,11 +80,12 @@ export default {
             });
             this.geojson.addTo(this.map);
 
-            this.addPopUps(this.$http);
+            this.addPopUps();
         },
-        addPopUps: function(http) {
+        addPopUps: function() {
             this.info = L.control();
-            this.info.http = http;
+            this.info.http = this.$http;
+            this.info.occurrencesDate = this.occurrencesDate;
 
             this.info.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"

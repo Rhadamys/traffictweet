@@ -76,6 +76,8 @@ export default {
         },
         addPopUps: function() {
             this.info = L.control();
+            this.info.http = this.$http;
+            this.info.occurrencesDate = this.occurrencesDate;
 
             this.info.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -85,10 +87,18 @@ export default {
 
             // method that we will use to update the control based on feature properties passed
             this.info.update = function (props) {
-                this._div.innerHTML =
-                    '<h4>Eventos por comuna</h4>' +
-                    (props ? '<b>' + props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br>'
-                        : '<br>Posicione el mouse sobre una comuna...');
+                this._div.innerHTML = '<h4>Eventos por comuna</h4><br>';
+                if(props) {
+                    this.http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?commune=' + props.commune.name + "&date=" + this.occurrencesDate)
+                        .then(response => {
+                            this._div.innerHTML += props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br><br><b>Detalle:</b><br><ul>';
+                            response.body.forEach((metric) => {
+                                this._div.innerHTML += '<li><b>' + metric.category.name + ':</b> ' + metric.count + '</li>';
+                            });
+                            this._div.innerHTML += '</ul>';
+                        }, response => {
+                            console.log('Error cargando lista');
+                        });
             };
 
             this.info.addTo(this.map);
