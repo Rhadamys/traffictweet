@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 @RestController
 @CrossOrigin
@@ -64,8 +66,16 @@ public class MetricService {
             method = RequestMethod.GET,
             params = "commune")
     @ResponseBody
-    public List<Metric> getMetricsByCommune(@RequestParam("commune") String commune) {
-        return metricRepository.findAllByCommune_NameOrderByCategory(commune);
+    public List<Metric> getMetricsByCommuneAndDate(@RequestParam("commune") String commune) {
+        Date now = new Date();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        calendar.setTime(now);
+        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
+                commune, calendar.getTime(), now);
     }
 
     /**
