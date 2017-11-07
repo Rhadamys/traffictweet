@@ -1,8 +1,8 @@
-package cl.usach.traffictweet.services;
+package cl.usach.traffictweet.sql.services;
 
-import cl.usach.traffictweet.models.Occurrence;
-import cl.usach.traffictweet.repositories.CategoryRepository;
-import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.sql.models.Occurrence;
+import cl.usach.traffictweet.sql.repositories.CategoryRepository;
+import cl.usach.traffictweet.sql.repositories.CommuneRepository;
 import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.utils.Constant;
 import com.mongodb.MongoClient;
@@ -91,7 +91,7 @@ public class OccurrenceService {
 
     /**
      * Get all occurrence by commune.
-     * @param communeName Commune.
+     * @param communeName CommuneNode.
      * @return All occurrences that match the commune.
      */
     @RequestMapping(

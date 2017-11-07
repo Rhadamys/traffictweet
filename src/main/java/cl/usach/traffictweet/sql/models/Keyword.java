@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -6,10 +6,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "streets")
+@Table(name = "keywords")
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Street.findAll", query = "SELECT s FROM Street s")})
-public class Street {
+        @NamedNativeQuery(name = "Keyword.findAll", query = "SELECT k FROM Keyword k")})
+public class Keyword {
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,11 +19,11 @@ public class Street {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "commune_id")
+    @JoinColumn(name = "category_id")
     @JsonIgnore
-    private Commune commune;
+    private Category category;
 
-    @Column(name = "created_at")
+    @Column(name="created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
@@ -32,24 +32,22 @@ public class Street {
         this.createdAt = new Date();
     }
 
-    public Street() { }
+    public Keyword() { }
 
-    public Street(String name, Commune commune){
+    public Keyword(String name, Category category) {
         this.name = name;
-        this.commune = commune;
+        this.category = category;
     }
 
     public int getId() {
         return id;
     }
+
     public String getName() {
         return name;
     }
-    public Commune getCommune() {
-        return commune;
-    }
-    public Date getCreatedAt() {
-        return createdAt;
+
+    public Category getCategory() {
+        return category;
     }
 }
-

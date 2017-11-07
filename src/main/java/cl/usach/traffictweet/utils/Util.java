@@ -43,13 +43,11 @@ public class Util {
         return text;
     }
 
-    public static Date getDateOnly(Date dateTime) {
+    public static String getDateString(Date dateTime) {
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(dateTime);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1;
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        return year + "-" + month + "-" + day;
     }
 }

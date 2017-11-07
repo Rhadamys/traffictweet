@@ -1,9 +1,10 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
-import cl.usach.traffictweet.repositories.CategoryRepository;
-import cl.usach.traffictweet.repositories.CommuneRepository;
+import cl.usach.traffictweet.sql.repositories.CategoryRepository;
+import cl.usach.traffictweet.sql.repositories.CommuneRepository;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.Month;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -19,8 +20,10 @@ public class Occurrence {
     private String username;
     private String image;
     private String text;
+
+    @JsonFormat(pattern="dd'/'MM'/'yyyy 'a las' HH:mm")
     private Date date;
-    private String dateString;
+
     private Commune commune;
     private List<Category> categories;
     
@@ -36,17 +39,6 @@ public class Occurrence {
         this.image = imageUrl;
         this.text = text;
         this.date = date;
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Month month = Month.values()[calendar.get(Calendar.MONTH)];
-        int year = calendar.get(Calendar.YEAR);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        this.dateString = day + " de " + month + " de " + year + " a las " +
-                (hour < 10 ? "0" + hour: hour) + ":" + (minute < 10 ? "0" + minute: minute);
-
         this.commune = commune;
         this.categories = categories;
     }
@@ -69,10 +61,6 @@ public class Occurrence {
 
     public Date getDate() {
         return date;
-    }
-
-    public String getDateString() {
-        return dateString;
     }
 
     public Commune getCommune() {

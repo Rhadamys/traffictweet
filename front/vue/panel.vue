@@ -6,7 +6,7 @@
         </ol>
         <div class="panel panel-body">
             <div class="input-group">
-                <input type="text" class="form-control" v-model="search" placeholder="Buscar...">
+                <input type="text" class="form-control" v-on:keyup.enter="searchTweets" v-model="search" placeholder="Buscar...">
                 <div class="input-group-btn">
                     <button class="btn btn-success" type="submit" v-on:click="searchTweets">
                         <i class="glyphicon glyphicon-search"></i>
@@ -26,7 +26,7 @@
                     <h3 v-if="calendar.length > 1" class="date-header">{{ date.date }}</h3>
                     <div class="row" v-for="i in Math.ceil(date.tweets.length / 3)">
                         <div v-for="tweet in date.tweets.slice((i - 1) * 3, i * 3)" class="col-md-4">
-                            <tweet v-bind="tweet" details="true"></tweet>
+                            <tweet v-bind="tweet" v-bind:key="tweet.tweetId" details="true"></tweet>
                         </div>
                     </div>
                 </div>
@@ -100,16 +100,17 @@ export default {
             let calendar = [];
             let baseDate = null;
             tweets.forEach((tweet) => {
-                let date = new Date(tweet.date);
-                if (baseDate && date > baseDate)
+                const match = /^(\d\d)\/(\d\d)\/(\d{4})/.exec(tweet.date);
+                const day = Number(match[1]);
+                const month = Number(match[2]);
+                const year = Number(match[3]);
+                let date = new Date(year, month, day);
+
+                if (baseDate && date >= baseDate)
                     calendar[calendar.length - 1].tweets.push(tweet);
                 else {
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-
                     calendar.push({
-                        date: date.getUTCDate() + ' de ' + monthNames[date.getMonth()] + ' de ' + date.getFullYear(),
+                        date: day + ' de ' + monthNames[month - 1] + ' de ' + year,
                         tweets: [tweet]
                     });
 
@@ -117,7 +118,6 @@ export default {
                 }
             });
 
-            console.log(calendar)
             return calendar;
         }
     },

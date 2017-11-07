@@ -1,19 +1,16 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
-import cl.usach.traffictweet.repositories.MetricRepository;
-import cl.usach.traffictweet.utils.Month;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import cl.usach.traffictweet.sql.repositories.CategoryMetricRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import java.util.Calendar;
 import java.util.Date;
 
 @Entity
-@Table(name = "metrics")
+@Table(name = "categories_metrics")
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Metric.findAll", query = "SELECT m FROM Metric m")})
-public class Metric {
+        @NamedNativeQuery(name = "CategoryMetric.findAll", query = "SELECT c FROM CategoryMetric c")})
+public class CategoryMetric {
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +20,6 @@ public class Metric {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "commune_id")
-    private Commune commune;
-
     @Column(name = "count", nullable = false)
     private int count;
 
@@ -35,23 +28,16 @@ public class Metric {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date metricDate;
 
-    public Metric() { }
+    public CategoryMetric() { }
 
-    public Metric(Category category,
-                  Commune commune,
-                  Date metricDate) {
+    public CategoryMetric(Category category, Date metricDate) {
         this.category = category;
-        this.commune = commune;
         this.metricDate = metricDate;
         this.count = 0;
     }
 
     public Category getCategory() {
         return category;
-    }
-
-    public Commune getCommune() {
-        return commune;
     }
 
     public int getCount() {
@@ -71,17 +57,16 @@ public class Metric {
     }
 
     public static void update(
-            MetricRepository metricRepository,
-            Category category,
-            Commune commune) {
+            CategoryMetricRepository categoryMetricRepository,
+            Category category) {
         Date today = new Date();
 
-        Metric metric = metricRepository
-                .findByMetricDateAndCategoryAndCommune(today, category, commune);
+        CategoryMetric metric = categoryMetricRepository
+                .findByMetricDateAndCategory(today, category);
 
-        if(metric == null) metric = new Metric(category, commune, today);
+        if(metric == null) metric = new CategoryMetric(category, today);
         metric.incrementCount();
 
-        metricRepository.save(metric);
+        categoryMetricRepository.save(metric);
     }
 }

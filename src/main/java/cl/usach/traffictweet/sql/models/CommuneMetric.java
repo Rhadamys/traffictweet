@@ -1,11 +1,9 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
-import cl.usach.traffictweet.repositories.CommuneMetricRepository;
-import cl.usach.traffictweet.utils.Month;
+import cl.usach.traffictweet.sql.repositories.CommuneMetricRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import java.util.Calendar;
 import java.util.Date;
 
 @Entity

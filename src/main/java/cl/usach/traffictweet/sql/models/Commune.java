@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.LazyCollection;

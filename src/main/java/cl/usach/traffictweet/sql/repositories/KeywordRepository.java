@@ -1,6 +1,6 @@
-package cl.usach.traffictweet.repositories;
+package cl.usach.traffictweet.sql.repositories;
 
-import cl.usach.traffictweet.models.Keyword;
+import cl.usach.traffictweet.sql.models.Keyword;
 import org.springframework.data.repository.CrudRepository;
 
 public interface KeywordRepository extends CrudRepository<Keyword,Integer>{

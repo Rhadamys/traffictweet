@@ -146,6 +146,74 @@ body {
     color: #777;
 }
 
+.graphs {
+    height: 85vh !important;
+
+    .graph-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        color: white !important;
+        font-weight: normal !important;
+        align-items: center;
+
+        .date-picker {
+            width: 20vw;
+        }
+    }
+
+    .graph {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-around;
+    }
+}
+
+.occurrence {
+    height: 76vh !important;
+}
+
+.column {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.area {
+    height: 100%;
+}
+
+.link {
+    stroke: #005A32;
+    stroke-width: 0.15em;
+}
+.label {
+    fill: black;
+}
+.node-label {
+    stroke: white;
+    width: 1em !important;
+}
+.current {
+    stroke: #79100F;
+    stroke-width: 0.3em;
+}
+.occurrence {
+    fill: #DD1C1A;
+}
+.commune {
+    fill: #29BF12;
+}
+.user {
+    fill: #FF9914;
+}
+
+.node-info {
+    position: absolute;
+    margin: 1em;
+}
+
 /* Otros elementos */
 a {
     color: $main-color;

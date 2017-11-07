@@ -1,5 +1,5 @@
-package cl.usach.traffictweet.repositories;
-import cl.usach.traffictweet.models.Category;
+package cl.usach.traffictweet.sql.repositories;
+import cl.usach.traffictweet.sql.models.Category;
 import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 

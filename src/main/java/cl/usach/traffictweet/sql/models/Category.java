@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql.models;
 
 import cl.usach.traffictweet.utils.Util;
 import com.fasterxml.jackson.annotation.JsonIgnore;

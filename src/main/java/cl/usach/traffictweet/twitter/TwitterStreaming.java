@@ -1,8 +1,9 @@
 package cl.usach.traffictweet.twitter;
 
-import cl.usach.traffictweet.models.Category;
-import cl.usach.traffictweet.models.*;
-import cl.usach.traffictweet.repositories.*;
+import cl.usach.traffictweet.sql.models.Category;
+import cl.usach.traffictweet.sql.models.*;
+import cl.usach.traffictweet.neo4j.Neo4j;
+import cl.usach.traffictweet.sql.repositories.*;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.MatchCase;
 import cl.usach.traffictweet.utils.Util;
@@ -11,10 +12,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

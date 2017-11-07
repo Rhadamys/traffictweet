@@ -1,7 +1,7 @@
-package cl.usach.traffictweet.services;
+package cl.usach.traffictweet.sql.services;
 
-import cl.usach.traffictweet.models.Category;
-import cl.usach.traffictweet.repositories.CategoryRepository;
+import cl.usach.traffictweet.sql.models.Category;
+import cl.usach.traffictweet.sql.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

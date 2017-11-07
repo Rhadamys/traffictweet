@@ -31,9 +31,9 @@ const routes = [
         component: About
     },
     {
-        path: '/occurrence/:id',
+        path: '/occurrences/:id',
         component: Occurrence,
-        props: true,
+        props: true
     }
 ]
 

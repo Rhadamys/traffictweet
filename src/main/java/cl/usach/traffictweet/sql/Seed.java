@@ -1,20 +1,20 @@
-package cl.usach.traffictweet.models;
+package cl.usach.traffictweet.sql;
 
-import cl.usach.traffictweet.repositories.*;
+import cl.usach.traffictweet.neo4j.Neo4j;
+import cl.usach.traffictweet.sql.models.*;
+import cl.usach.traffictweet.sql.repositories.*;
 import cl.usach.traffictweet.twitter.Lucene;
-import cl.usach.traffictweet.twitter.Neo4j;
-import cl.usach.traffictweet.twitter.TwitterStreaming;
 import cl.usach.traffictweet.utils.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -196,15 +196,19 @@ public class Seed implements ApplicationRunner {
     }
 
     public void run(ApplicationArguments args) {
-        initCommunes();
-        initKeywords();
+        try {
+            initCommunes();
+            initKeywords();
 
-        // TODO: Mejorar reconocimiento de comunas por calle. NO descomentar hasta entonces.
-        // initStreets();
+            // TODO: Mejorar reconocimiento de comunas por calle. NO descomentar hasta entonces.
+            // initStreets();
 
-        initMetrics();
+            initMetrics();
+            Neo4j.seed();
+        } catch(DataIntegrityViolationException ex) {
+            LOGGER.log(Level.WARNING, "Data already populated! If you want to do this again, change configuration to \"create\" in \"application.properties\" file.");
+        }
 
         Lucene.createIndex();
-        Neo4j.runNeo4j(communeRepository);
     }
 }

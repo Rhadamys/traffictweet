@@ -1,8 +1,7 @@
-package cl.usach.traffictweet.repositories;
+package cl.usach.traffictweet.sql.repositories;
 
-import cl.usach.traffictweet.models.Commune;
-import cl.usach.traffictweet.models.CommuneMetric;
-import cl.usach.traffictweet.utils.Month;
+import cl.usach.traffictweet.sql.models.Commune;
+import cl.usach.traffictweet.sql.models.CommuneMetric;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Date;

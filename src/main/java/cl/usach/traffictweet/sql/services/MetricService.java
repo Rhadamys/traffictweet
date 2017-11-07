@@ -1,19 +1,15 @@
-package cl.usach.traffictweet.services;
+package cl.usach.traffictweet.sql.services;
 
-import cl.usach.traffictweet.models.Category;
-import cl.usach.traffictweet.models.CategoryMetric;
-import cl.usach.traffictweet.models.CommuneMetric;
-import cl.usach.traffictweet.models.Metric;
-import cl.usach.traffictweet.repositories.CategoryMetricRepository;
-import cl.usach.traffictweet.repositories.CommuneMetricRepository;
-import cl.usach.traffictweet.repositories.MetricRepository;
-import cl.usach.traffictweet.utils.Month;
+import cl.usach.traffictweet.sql.models.CategoryMetric;
+import cl.usach.traffictweet.sql.models.CommuneMetric;
+import cl.usach.traffictweet.sql.models.Metric;
+import cl.usach.traffictweet.sql.repositories.CategoryMetricRepository;
+import cl.usach.traffictweet.sql.repositories.CommuneMetricRepository;
+import cl.usach.traffictweet.sql.repositories.MetricRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,30 +27,37 @@ public class MetricService {
     private CommuneMetricRepository communeMetricRepository;
 
     @RequestMapping(
-            value = "/today",
+            value = "/categories/today",
             method = RequestMethod.GET)
     @ResponseBody
-    public List<CategoryMetric> getAll() {
+    public List<CategoryMetric> getAllCategoryMetricsOfToday() {
         return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(new Date());
     }
 
-    /**
-     * Get all occurrence by commune.
-     * @return All occurrences by commune.
-     */
     @RequestMapping(
-            value = "/today/communes",
+            value = "/categories",
+            method = RequestMethod.GET,
+            params = "date")
+    @ResponseBody
+    public List<CategoryMetric> getAllCategoryMetricsByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
+    }
+
+    @RequestMapping(
+            value = "/communes/today",
             method = RequestMethod.GET)
     @ResponseBody
-    public List<CommuneMetric> getAllByCommune() {
+    public List<CommuneMetric> getAllCommuneMetricsOfToday() {
         return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(new Date());
     }
 
     @RequestMapping(
-            method = RequestMethod.GET, params = "date")
+            value = "/communes",
+            method = RequestMethod.GET,
+            params = "date")
     @ResponseBody
-    public List<CategoryMetric> getAllByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
+    public List<CommuneMetric> getAllCommuneMetricsByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
+        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(date);
     }
 
     /**

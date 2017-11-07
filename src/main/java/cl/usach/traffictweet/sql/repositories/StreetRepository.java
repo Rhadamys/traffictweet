@@ -1,6 +1,6 @@
-package cl.usach.traffictweet.repositories;
+package cl.usach.traffictweet.sql.repositories;
 
-import cl.usach.traffictweet.models.Street;
+import cl.usach.traffictweet.sql.models.Street;
 import org.springframework.data.repository.CrudRepository;
 
 public interface StreetRepository extends CrudRepository<Street,Integer>{

@@ -1,9 +1,7 @@
-package cl.usach.traffictweet.repositories;
+package cl.usach.traffictweet.sql.repositories;
 
-import cl.usach.traffictweet.models.Commune;
+import cl.usach.traffictweet.sql.models.Commune;
 import org.springframework.data.repository.CrudRepository;
-
-import java.util.List;
 
 public interface CommuneRepository extends CrudRepository<Commune,Integer>{
     Commune findByName(String name);

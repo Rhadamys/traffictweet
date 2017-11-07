@@ -1,102 +1,244 @@
 <template>
     <div class="container">
-        <ol class="breadcrumb">
-            <li><a href="#/">Inicio</a></li>
-            <li class="active">Gráficos</li>
-        </ol>
-        <div class="col-md-8">
-            <canvas id="chart-semestre" class="panel panel-default"></canvas>
-        </div>
-        <div class="col-md-4">
-            <canvas id="chart-resumen" class="panel panel-default"></canvas>
+        <div class="row graphs">
+            <div class="col-md-7 area">
+                <div class="panel panel-default column">
+                    <div class="panel-heading graph-header">
+                        <div class="dates-header">
+                            <b>Seleccione una fecha:</b>
+                        </div>
+                        <input class="form-control date-picker"
+                               type="date" v-model="occurrencesDate"
+                               placeholder="dd/MM/aaaa" id="categories-date">
+                    </div>
+                    <div id="map" class="area"></div>
+                </div>
+            </div>
+            <div class="col-md-5 area">
+                <div class="panel panel-default column graph">
+                    <canvas id="chart-categories"></canvas>
+                    <canvas id="chart-communes"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 <script>
+import GeoJSON from './rm.json';
+
 export default {
+    data: function () {
+        return {
+            occurrencesDate: '',
+            categoryMetrics: [],
+            communeMetrics: [],
+            rm: GeoJSON,
+            geojson: null,
+            info: null,
+            colors: [
+                '#ffffe5',
+                '#e5f5e0',
+                '#c7e9c0',
+                '#a1d99b',
+                '#74c476',
+                '#41ab5d',
+                '#238b45',
+                '#005a32'
+            ]
+        }
+    },
     mounted: function () {
-        var style = getComputedStyle(document.body);
+        this.putMap();
+    },
+    methods: {
+        putMap: function() {
+            this.map = L.map('map').setView([-33.6093118, -70.7915517], 9);
+            L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                maxZoom: 18,
+                id: 'mapbox.streets-basic',
+                accessToken: 'pk.eyJ1IjoicmhhZGFteXMiLCJhIjoiY2o4bzBoZGVxMWU3bzJ3cGZtdTJucXkyMiJ9.pkzq5crdrE9U5HpXdl6Ing'
+            }).addTo(this.map);
 
-        var ctxSem = document.getElementById("chart-semestre").getContext('2d');
-        new Chart(ctxSem, {
-            type: 'line',
-            data: {
-                labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"],
-                datasets: [{
-                    label: "Puntos de congestión",
-                    backgroundColor: style.getPropertyValue('--graph-background-1'),
-                    borderColor: style.getPropertyValue('--graph-border-1'),
-                    fill: false,
-                    data: [10, 5, 16, 21, 19, 12 ]
-                }, {
-                    label: "Accidentes",
-                    backgroundColor: style.getPropertyValue('--graph-background-2'),
-                    borderColor: style.getPropertyValue('--graph-border-2'),
-                    fill: false,
-                    data: [4, 9, 12, 7, 5, 3 ]
-                }, {
-                    label: "Otros",
-                    backgroundColor: style.getPropertyValue('--graph-background-3'),
-                    borderColor: style.getPropertyValue('--graph-border-3'),
-                    fill: false,
-                    data: [12, 13, 9, 10, 15, 21 ]
-                }]
-            },
-            options: {
-                responsive: true,
-                title:{
-                    display: true,
-                    text: 'Eventos de tránsito en los últimos 6 meses'
-                },
-                scales: {
-                    xAxes: [{
-                        display: true,
-                    }],
-                    yAxes: [{
-                        display: true,
-                    }]
-                }
+            this.addPopUps();
+        },
+        putChoropleth: function() {
+            if(this.geojson) this.geojson.remove();
+            if(this.communeMetrics.length > 0) {
+                this.setMaxValue();
+                this.geojson = L.geoJSON(this.rm, {
+                    style: this.style,
+                    onEachFeature: this.onEachFeature
+                });
+                this.geojson.addTo(this.map);
+            } else {
+                alert("No se registraron eventos en la fecha seleccionada. Por favor, seleccione otra fecha.");
             }
-        });
+        },
+        addPopUps: function() {
+            this.info = L.control();
 
-        var ctxRes = document.getElementById("chart-resumen").getContext('2d');
-        new Chart(ctxRes, {
-            type: 'bar',
-            data: {
-                labels: ["Accidentes", "Congestión", "Otros"],
-                datasets: [{
-                    label: "# de eventos",
-                    data: [10, 5, 21],
-                    backgroundColor:
-                    [
-                        style.getPropertyValue('--graph-background-1'),
-                        style.getPropertyValue('--graph-background-2'),
-                        style.getPropertyValue('--graph-background-3')
-                    ],
-                    borderColor:
-                    [
-                        style.getPropertyValue('--graph-border-1'),
-                        style.getPropertyValue('--graph-border-2'),
-                        style.getPropertyValue('--graph-border-3')
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                title:{
-                    display: true,
-                    text: 'Eventos de tránsito en los últimos 6 meses'
-                },
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero:true
-                        }
-                    }]
-                }
+            this.info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+                this.update();
+                return this._div;
+            };
+
+            // method that we will use to update the control based on feature properties passed
+            this.info.update = function (props) {
+                this._div.innerHTML =
+                    '<h4>Eventos por comuna</h4>' +
+                    (props ? '<b>' + props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br>'
+                        : '<br>Posicione el mouse sobre una comuna...');
+            };
+
+            this.info.addTo(this.map);
+        },
+        // Funciones para mapa coroplético
+        setMaxValue: function() {
+            let max = 0;
+            this.communeMetrics.forEach((metric) => {
+                if(metric.count > max) max = metric.count;
+            });
+            this.communeMetrics.max = max;
+        },
+        style: function(feature) {
+            let metric = this.findMetric(feature);
+            return {
+                fillColor: this.getColor(metric ? metric.count : 0),
+                weight: 2,
+                opacity: 0.8,
+                color: '#003933',
+                dashArray: '3',
+                fillOpacity: 0.75
+            };
+        },
+        findMetric: function(feature) {
+            let metricRet = null;
+            this.communeMetrics.forEach((metric) => {
+                if(metric.commune.name === feature.properties.Comuna) metricRet = metric;
+            });
+            return metricRet;
+        },
+        getColor: function(val) {
+            return this.colors[parseInt(val * this.colors.length / this.communeMetrics.max)];
+        },
+        // Funciones para pop-ups
+        highlightFeature: function(e) {
+            const layer = e.target;
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
             }
-        });
+
+            this.info.update(this.findMetric(layer.feature));
+        },
+        resetHighlight: function(e) {
+            this.geojson.resetStyle(e.target);
+            this.info.update();
+        },
+        zoomToFeature: function(e) {
+            this.map.fitBounds(e.target.getBounds());
+        },
+        onEachFeature: function(feature, layer) {
+            layer.on({
+                mouseover: this.highlightFeature,
+                mouseout: this.resetHighlight,
+                click: this.zoomToFeature
+            });
+        },
+        // Gráficos
+        putCategoriesGraph: function() {
+            const ctxCategories = document.getElementById("chart-categories").getContext('2d');
+            let categoriesLabels = [];
+            let categoriesCount = [];
+            let colors = [];
+            this.categoryMetrics.forEach((metric) => {
+                colors.push(this.colors[categoriesLabels.length  % (this.colors.length - 1) + 1]);
+                categoriesLabels.push(metric.category.name);
+                categoriesCount.push(metric.count);
+            });
+            new Chart(ctxCategories, {
+                type: 'doughnut',
+                data: {
+                    labels: categoriesLabels,
+                    datasets: [{
+                        label: "# de eventos",
+                        data: categoriesCount,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        display: false
+                    },
+                    title:{
+                        display: true,
+                        text: '# Eventos reportados (por categoría)'
+                    }
+                }
+            });
+        },
+        putCommunesGraph: function() {
+            const ctxCommunes = document.getElementById("chart-communes").getContext('2d');
+            let communesLabels = [];
+            let communesCount = [];
+            let colors = [];
+            this.communeMetrics.forEach((metric) => {
+                colors.push(this.colors[communesLabels.length  % (this.colors.length - 1) + 1]);
+                communesLabels.push(metric.commune.name);
+                communesCount.push(metric.count);
+            });
+            new Chart(ctxCommunes, {
+                type: 'doughnut',
+                data: {
+                    labels: communesLabels,
+                    datasets: [{
+                        label: "# de eventos",
+                        data: communesCount,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        display: false
+                    },
+                    title:{
+                        display: true,
+                        text: '# Eventos reportados (por comuna)'
+                    }
+                }
+            });
+        }
+    },
+    watch: {
+        occurrencesDate: function(val) {
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/categories?date=' + val)
+                .then(response => {
+                    this.categoryMetrics = response.body;
+                    this.putCategoriesGraph();
+                }, response => {
+                    console.log('Error cargando lista');
+                });
+
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/communes?date=' + val)
+                .then(response => {
+                    this.communeMetrics = response.body;
+                    this.putChoropleth();
+                    this.putCommunesGraph();
+                }, response => {
+                    console.log('Error cargando lista');
+                });
+        }
     }
 }
 </script>
