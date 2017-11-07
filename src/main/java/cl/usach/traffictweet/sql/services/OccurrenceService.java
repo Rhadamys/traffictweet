@@ -35,7 +35,7 @@ public class OccurrenceService {
     @ResponseBody
     public List<Occurrence> getAll() {
         Date now = new Date();
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(now);
         calendar.set(Calendar.HOUR, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -151,7 +151,7 @@ public class OccurrenceService {
     public List<Occurrence> findBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(to);
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);

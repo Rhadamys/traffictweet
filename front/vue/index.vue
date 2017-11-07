@@ -48,14 +48,14 @@ export default {
     mounted: function () {
         this.putMap();
 
-        this.$http.get('http://localhost:9090/metrics/categories/today')
+        this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/categories/today')
             .then(response => {
                 this.categoryMetrics = response.body;
             }, response => {
                 console.log('Error cargando lista');
             });
 
-        this.$http.get('http://localhost:9090/metrics/communes/today')
+        this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/communes/today')
             .then(response => {
                 this.communeMetrics = response.body;
                 this.putChoropleth();
@@ -71,8 +71,6 @@ export default {
                 id: 'mapbox.streets-basic',
                 accessToken: 'pk.eyJ1IjoicmhhZGFteXMiLCJhIjoiY2o4bzBoZGVxMWU3bzJ3cGZtdTJucXkyMiJ9.pkzq5crdrE9U5HpXdl6Ing'
             }).addTo(this.map);
-
-            this.addPopUps();
         },
         putChoropleth: function() {
             this.setMaxValue();
@@ -81,9 +79,12 @@ export default {
                 onEachFeature: this.onEachFeature
             });
             this.geojson.addTo(this.map);
+
+            this.addPopUps(this.$http);
         },
-        addPopUps: function() {
+        addPopUps: function(http) {
             this.info = L.control();
+            this.info.http = http;
 
             this.info.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -93,10 +94,21 @@ export default {
 
             // method that we will use to update the control based on feature properties passed
             this.info.update = function (props) {
-                this._div.innerHTML =
-                    '<h4>Eventos por comuna</h4>' +
-                    (props ? '<b>' + props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br>'
-                    : '<br>Posicione el mouse sobre una comuna...');
+                this._div.innerHTML = '<h4>Eventos por comuna</h4><br>';
+                if(props) {
+                    this.http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?commune=' + props.commune.name)
+                        .then(response => {
+                            this._div.innerHTML += props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br><br><b>Detalle:</b><br><ul>';
+                            response.body.forEach((metric) => {
+                                this._div.innerHTML += '<li><b>' + metric.category.name + ':</b> ' + metric.count + '</li>';
+                            });
+                            this._div.innerHTML += '</ul>';
+                        }, response => {
+                            console.log('Error cargando lista');
+                        });
+                } else {
+                    this._div.innerHTML += 'Posicione el mouse sobre una comuna...';
+                }
             };
 
             this.info.addTo(this.map);

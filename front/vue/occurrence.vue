@@ -266,7 +266,7 @@ export default {
                         source: nodes.length - (communeExist && userExist ? 1 :
                             communeExist || userExist ? 2 : 3),
                         target: userIndexes[userNames.indexOf(cause.reportedBy.username)],
-                        type: 'REPORTED_AT'
+                        type: 'REPORTED_BY'
                     });
                 });
             }

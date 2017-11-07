@@ -60,16 +60,12 @@ public class MetricService {
         return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(date);
     }
 
-    /**
-     * Get total amount of occurrences of a commune.
-     * @return Amount of occurrences of a commune.
-     */
     @RequestMapping(
             method = RequestMethod.GET,
             params = "commune")
     @ResponseBody
-    public int getTotalOccurrencesByCommune(@RequestParam("commune") String commune) {
-        return communeMetricRepository.findByCommune_Name(commune).getCount();
+    public List<Metric> getMetricsByCommune(@RequestParam("commune") String commune) {
+        return metricRepository.findAllByCommune_NameOrderByCategory(commune);
     }
 
     /**
