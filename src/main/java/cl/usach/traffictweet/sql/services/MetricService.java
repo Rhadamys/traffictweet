@@ -90,8 +90,7 @@ public class MetricService {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
-        return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
-                commune, calendar.getTime(), date);
+        return getMetricsByCommuneAndBetweenDates(commune, calendar.getTime(), date);
     }
 
     @RequestMapping(
@@ -110,52 +109,5 @@ public class MetricService {
 
         return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
                 commune, from, calendar.getTime());
-    }
-
-    /**
-     * Get total amount of occurrences by commune and a date.
-     * @return Amount of occurrences of a commune on an specific day.
-     */
-    @RequestMapping(
-            method = RequestMethod.GET, params = {"commune", "date"})
-    @ResponseBody
-    public int getTotalOccurrencesByCommuneAndDate(
-            @RequestParam("commune") String commune,
-            @RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        CommuneMetric metric = communeMetricRepository.findByMetricDateAndCommune_Name(date, commune);
-        return metric.getCount();
-    }
-
-    /**
-     * Get total amount of occurrences by commune between days.
-     * @return Amount of occurrences of a commune beetween two dates.
-     */
-    @RequestMapping(
-            method = RequestMethod.GET, params = {"commune", "from", "to"})
-    @ResponseBody
-    public int getTotalOccurrencesByCommuneAndDates(
-            @RequestParam("commune") String commune,
-            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
-            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        List<CommuneMetric> metrics= communeMetricRepository.findByCommune_NameAndMetricDateBetweenOrderByMetricDateDesc(commune,from,to);
-        int totalOccurrences = 0;
-        for (CommuneMetric metric : metrics) {
-            totalOccurrences = metric.getCount()+totalOccurrences;
-        }
-        return totalOccurrences;
-    }
-
-    /**
-     * Get total amount of occurrences by category on a commune.
-     * @return Amount of occurrences of a commune on an specific category.
-     */
-    @RequestMapping(
-            method = RequestMethod.GET, params = {"category", "commune"})
-    @ResponseBody
-    public int getTotalOccurrencesByCategoryAndCommune(
-            @RequestParam("category") String category,
-            @RequestParam("commune") String commune) {
-        Metric metric = metricRepository.findByCategory_KeyAndCommune_Name(category,commune);
-        return metric.getCount();
     }
 }
