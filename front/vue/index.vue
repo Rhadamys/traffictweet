@@ -95,11 +95,11 @@ export default {
 
             // method that we will use to update the control based on feature properties passed
             this.info.update = function (props) {
-                this._div.innerHTML = '<h4>Eventos por comuna</h4><br>';
+                this._div.innerHTML = '<h4>Eventos por comuna</h4>';
                 if(props) {
                     this.http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?commune=' + props.commune.name)
                         .then(response => {
-                            this._div.innerHTML += props.commune.name + '</b><br>Total de eventos: ' + props.count + '<br><br><b>Detalle:</b><br><ul>';
+                            this._div.innerHTML += '<h3>' + props.commune.name + '</h3></b><br>Total de eventos: ' + props.count + '<br><br><b>Detalle:</b><br><ul>';
                             response.body.forEach((metric) => {
                                 this._div.innerHTML += '<li><b>' + metric.category.name + ':</b> ' + metric.count + '</li>';
                             });
@@ -108,7 +108,7 @@ export default {
                             console.log('Error cargando lista');
                         });
                 } else {
-                    this._div.innerHTML += 'Posicione el mouse sobre una comuna...';
+                    this._div.innerHTML += '<br>Posicione el mouse sobre una comuna...';
                 }
             };
 
