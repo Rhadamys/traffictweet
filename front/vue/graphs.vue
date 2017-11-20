@@ -30,6 +30,8 @@ export default {
     data: function () {
         return {
             occurrencesDate: '',
+            categoryChart: null,
+            communeChart: null,
             categoryMetrics: [],
             communeMetrics: [],
             rm: GeoJSON,
@@ -49,6 +51,7 @@ export default {
     },
     mounted: function () {
         this.putMap();
+        this.putGraphs();
     },
     methods: {
         putMap: function() {
@@ -166,24 +169,16 @@ export default {
             });
         },
         // Gráficos
-        putCategoriesGraph: function() {
+        putGraphs: function() {
             const ctxCategories = document.getElementById("chart-categories").getContext('2d');
-            let categoriesLabels = [];
-            let categoriesCount = [];
-            let colors = [];
-            this.categoryMetrics.forEach((metric) => {
-                colors.push(this.colors[categoriesLabels.length  % (this.colors.length - 1) + 1]);
-                categoriesLabels.push(metric.category.name);
-                categoriesCount.push(metric.count);
-            });
-            new Chart(ctxCategories, {
+            this.categoryChart = new Chart(ctxCategories, {
                 type: 'doughnut',
                 data: {
-                    labels: categoriesLabels,
+                    labels: [],
                     datasets: [{
                         label: "# de eventos",
-                        data: categoriesCount,
-                        backgroundColor: colors,
+                        data: [],
+                        backgroundColor: [],
                         borderWidth: 1
                     }]
                 },
@@ -198,25 +193,16 @@ export default {
                     }
                 }
             });
-        },
-        putCommunesGraph: function() {
+
             const ctxCommunes = document.getElementById("chart-communes").getContext('2d');
-            let communesLabels = [];
-            let communesCount = [];
-            let colors = [];
-            this.communeMetrics.forEach((metric) => {
-                colors.push(this.colors[communesLabels.length  % (this.colors.length - 1) + 1]);
-                communesLabels.push(metric.commune.name);
-                communesCount.push(metric.count);
-            });
-            new Chart(ctxCommunes, {
+            this.communeChart = new Chart(ctxCommunes, {
                 type: 'doughnut',
                 data: {
-                    labels: communesLabels,
+                    labels: [],
                     datasets: [{
                         label: "# de eventos",
-                        data: communesCount,
-                        backgroundColor: colors,
+                        data: [],
+                        backgroundColor: [],
                         borderWidth: 1
                     }]
                 },
@@ -231,6 +217,44 @@ export default {
                     }
                 }
             });
+        },
+        updateCategoriesChart: function() {
+            let categoriesLabels = [];
+            let categoriesCount = [];
+            let colors = [];
+            this.categoryMetrics.forEach((metric) => {
+                colors.push(this.colors[categoriesLabels.length  % (this.colors.length - 1) + 1]);
+                categoriesLabels.push(metric.category.name);
+                categoriesCount.push(metric.count);
+            });
+
+            this.categoryChart.data.datasets = [{
+                label: "# de eventos",
+                data: categoriesCount,
+                backgroundColor: colors,
+                borderWidth: 1
+            }];
+            this.categoryChart.data.labels = categoriesLabels;
+            this.categoryChart.update();
+        },
+        updateCommunesChart: function() {
+            let communesLabels = [];
+            let communesCount = [];
+            let colors = [];
+            this.communeMetrics.forEach((metric) => {
+                colors.push(this.colors[communesLabels.length  % (this.colors.length - 1) + 1]);
+                communesLabels.push(metric.commune.name);
+                communesCount.push(metric.count);
+            });
+
+            this.communeChart.data.datasets = [{
+                label: "# de eventos",
+                data: communesCount,
+                backgroundColor: colors,
+                borderWidth: 1
+            }];
+            this.communeChart.data.labels = communesLabels;
+            this.communeChart.update();
         }
     },
     watch: {
@@ -239,7 +263,7 @@ export default {
             this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics/categories?date=' + val)
                 .then(response => {
                     this.categoryMetrics = response.body;
-                    this.putCategoriesGraph();
+                    this.updateCategoriesChart();
                 }, response => {
                     console.log('Error cargando lista');
                 });
@@ -248,7 +272,7 @@ export default {
                 .then(response => {
                     this.communeMetrics = response.body;
                     this.putChoropleth();
-                    this.putCommunesGraph();
+                    this.updateCommunesChart();
                 }, response => {
                     console.log('Error cargando lista');
                 });

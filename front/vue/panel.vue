@@ -59,7 +59,7 @@ export default {
     },
     methods: {
         tweetsOfToday: function () {
-            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences?from=2017-11-07&to=2017-11-07')
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences')
                 .then(response => {
                     this.calendar = this.getOccurrencesCalendar(response.body);
                     this.loading = false;
