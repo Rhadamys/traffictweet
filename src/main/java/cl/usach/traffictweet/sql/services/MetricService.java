@@ -1,5 +1,6 @@
 package cl.usach.traffictweet.sql.services;
 
+import cl.usach.traffictweet.sql.models.Category;
 import cl.usach.traffictweet.sql.models.CategoryMetric;
 import cl.usach.traffictweet.sql.models.CommuneMetric;
 import cl.usach.traffictweet.sql.models.Metric;
@@ -10,10 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -110,4 +109,34 @@ public class MetricService {
         return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
                 commune, from, calendar.getTime());
     }
+
+    @RequestMapping(
+            value = "/categories",
+            method = RequestMethod.GET,
+            params = {"from","to"})
+    @ResponseBody
+    public Map<String, Integer> getMetricsByCategoriesAndBetweenDates(
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        calendar.setTime(to);
+        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+
+        List<CategoryMetric> metrics= categoryMetricRepository.findByMetricDateBetweenOrderByCategoryAsc(from,calendar.getTime());
+
+       Map<String, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CategoryMetric::getCategoryKey, Collectors.summingInt(CategoryMetric::getCount)));
+
+        System.out.println(sums.toString());
+        /*int totalOccurrences = 0;
+
+        for (CategoryMetric metric : metrics) {
+            totalOccurrences = metric.getCount()+totalOccurrences;
+        }
+
+        return totalOccurrences*/;
+        return sums;
+    }
+
 }

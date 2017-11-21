@@ -36,8 +36,18 @@ public class CategoryMetric {
         this.count = 0;
     }
 
+    public CategoryMetric(Category category, int count) {
+        this.category = category;
+        this.metricDate = new Date();
+        this.count = count;
+    }
+
     public Category getCategory() {
         return category;
+    }
+
+    public String getCategoryKey() {
+        return category.getKey();
     }
 
     public int getCount() {
