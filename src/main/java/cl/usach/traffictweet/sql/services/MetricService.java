@@ -1,9 +1,6 @@
 package cl.usach.traffictweet.sql.services;
 
-import cl.usach.traffictweet.sql.models.Category;
-import cl.usach.traffictweet.sql.models.CategoryMetric;
-import cl.usach.traffictweet.sql.models.CommuneMetric;
-import cl.usach.traffictweet.sql.models.Metric;
+import cl.usach.traffictweet.sql.models.*;
 import cl.usach.traffictweet.sql.repositories.CategoryMetricRepository;
 import cl.usach.traffictweet.sql.repositories.CommuneMetricRepository;
 import cl.usach.traffictweet.sql.repositories.MetricRepository;
@@ -12,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @RestController
@@ -115,7 +113,7 @@ public class MetricService {
             method = RequestMethod.GET,
             params = {"from","to"})
     @ResponseBody
-    public Map<String, Integer> getMetricsByCategoriesAndBetweenDates(
+    public List<CategoryMetric> getMetricsByCategoriesAndBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
@@ -126,17 +124,36 @@ public class MetricService {
 
         List<CategoryMetric> metrics= categoryMetricRepository.findByMetricDateBetweenOrderByCategoryAsc(from,calendar.getTime());
 
-       Map<String, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CategoryMetric::getCategoryKey, Collectors.summingInt(CategoryMetric::getCount)));
+        Map<Category, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CategoryMetric::getCategory, Collectors.summingInt(CategoryMetric::getCount)));
 
-        System.out.println(sums.toString());
-        /*int totalOccurrences = 0;
+        List<CategoryMetric> result = new ArrayList<>();
+        sums.entrySet().stream().forEach(e->result.add(new CategoryMetric(e.getKey(), e.getValue())));
 
-        for (CategoryMetric metric : metrics) {
-            totalOccurrences = metric.getCount()+totalOccurrences;
-        }
+        return result;
+    }
 
-        return totalOccurrences*/;
-        return sums;
+    @RequestMapping(
+            value = "/communes",
+            method = RequestMethod.GET,
+            params = {"from","to"})
+    @ResponseBody
+    public List<CommuneMetric> getMetricsByCommunesAndBetweenDates(
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        calendar.setTime(to);
+        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+
+        List<CommuneMetric> metrics= communeMetricRepository.findByMetricDateBetweenOrderByCommuneAsc(from,calendar.getTime());
+
+        Map<Commune, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CommuneMetric::getCommune, Collectors.summingInt(CommuneMetric::getCount)));
+
+        List<CommuneMetric> result = new ArrayList<>();
+        sums.entrySet().stream().forEach(e->result.add(new CommuneMetric(e.getKey(), e.getValue())));
+
+        return result;
     }
 
 }

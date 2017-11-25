@@ -12,7 +12,5 @@ import java.util.List;
 public interface CategoryMetricRepository extends CrudRepository<CategoryMetric,Integer>{
     List<CategoryMetric> findAllByMetricDateOrderByCategoryAsc(Date metricDate);
     CategoryMetric findByMetricDateAndCategory(Date metricDate, Category category);
-
-
-    List<CategoryMetric> findByMetricDateBetweenOrderByCategoryAsc(@Param("from") Date from, @Param("to") Date to);
+    List<CategoryMetric> findByMetricDateBetweenOrderByCategoryAsc(Date from, Date to);
 }

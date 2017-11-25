@@ -36,7 +36,13 @@ public class CommuneMetric {
         this.count = 0;
     }
 
-    public Commune getcommune() {
+    public CommuneMetric(Commune commune, int count) {
+        this.commune = commune;
+        this.metricDate = new Date();
+        this.count = count;
+    }
+
+    public Commune getCommune() {
         return commune;
     }
 
