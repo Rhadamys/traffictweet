@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,7 +32,8 @@ public class MetricService {
             method = RequestMethod.GET)
     @ResponseBody
     public List<CategoryMetric> getAllCategoryMetricsOfToday() {
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(new Date());
+        Date today = getTodayDate();
+        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(today);
     }
 
     @RequestMapping(
@@ -37,7 +41,8 @@ public class MetricService {
             method = RequestMethod.GET)
     @ResponseBody
     public List<CommuneMetric> getAllCommuneMetricsOfToday() {
-        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(new Date());
+        Date today = getTodayDate();
+        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(today);
     }
 
     @RequestMapping(
@@ -173,5 +178,14 @@ public class MetricService {
         categoryMetric.put("category", category.getName());
         categoryMetric.put("count", count);
         return categoryMetric;
+    }
+    private Date getTodayDate(){
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String text = date.format(formatter);
+        LocalDate parsedDate = LocalDate.parse(text, formatter);
+
+        Date finalDate = Date.from(parsedDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return finalDate;
     }
 }
