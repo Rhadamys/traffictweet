@@ -49,12 +49,12 @@ body {
 .panel-heading {
     display: flex;
     flex-direction: column;
+    color: white;
 
     .tweet-heading {
         display: flex;
         align-items: flex-start;
         margin-bottom: 0.25em;
-        color: white !important;
         font-weight: bold !important;
         font-size: 1.4em;
         height: 1.4em;
@@ -116,9 +116,8 @@ body {
     justify-content: space-between;
 }
 
-.loading {
+.alert {
     color: #777777;
-    height: 70vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -170,7 +169,7 @@ body {
     }
 }
 
-.occurrence {
+.occurrence-container {
     height: 76vh !important;
 }
 
@@ -178,6 +177,15 @@ body {
     height: 100% !important;
     display: flex;
     flex-direction: column;
+
+    .bottom {
+        margin-bottom: 0;
+    }
+
+    .causes {
+        display: inline-flex;
+        flex-direction: column;
+    }
 }
 
 .area {

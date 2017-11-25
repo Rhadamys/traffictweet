@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.sql;
 
+import cl.usach.traffictweet.mongo.models.Occurrence;
+import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.neo4j.Neo4j;
 import cl.usach.traffictweet.sql.models.*;
 import cl.usach.traffictweet.sql.repositories.*;
@@ -32,6 +34,7 @@ public class Seed implements ApplicationRunner {
     private MetricRepository metricRepository;
     private CategoryMetricRepository categoryMetricRepository;
     private CommuneMetricRepository communeMetricRepository;
+    private OccurrenceRepository occurrenceRepository;
 
     @Autowired
     public Seed(
@@ -41,7 +44,8 @@ public class Seed implements ApplicationRunner {
             StreetRepository streetRepository,
             MetricRepository metricRepository,
             CategoryMetricRepository categoryMetricRepository,
-            CommuneMetricRepository communeMetricRepository) {
+            CommuneMetricRepository communeMetricRepository,
+            OccurrenceRepository occurrenceRepository) {
         this.categoryRepository = categoryRepository;
         this.keywordRepository = keywordRepository;
         this.communeRepository = communeRepository;
@@ -49,6 +53,7 @@ public class Seed implements ApplicationRunner {
         this.metricRepository = metricRepository;
         this.categoryMetricRepository = categoryMetricRepository;
         this.communeMetricRepository = communeMetricRepository;
+        this.occurrenceRepository = occurrenceRepository;
     }
 
     /**
@@ -65,7 +70,7 @@ public class Seed implements ApplicationRunner {
             while ((line = br.readLine()) != null) {
                 String data[] = line.split(Constant.CSV_SPLIT_BY);
                 Commune commune = communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));
-                LOGGER.log(Level.INFO,"Nueva comuna: " + data[0]);
+                LOGGER.log(Level.INFO,"New commune: " + data[0]);
                 communes.put(commune.getName(), commune);
             }
 
@@ -77,7 +82,7 @@ public class Seed implements ApplicationRunner {
                 Commune commune = communes.get(data[0]);
                 for(int i = 1; i < data.length; i++) {
                     commune.addAdjacentCommune(communes.get(data[i]));
-                    LOGGER.log(Level.INFO, "Comuna " + commune.getName() + " <--- " + data[i]);
+                    LOGGER.log(Level.INFO, "Commune " + commune.getName() + " is adjacent to ---> " + data[i]);
                 }
                 communeRepository.save(commune);
             }
@@ -109,9 +114,9 @@ public class Seed implements ApplicationRunner {
                 if (datos.length == 2 && streetRepository.findByName(datos[0]) == null) {
                     Commune commune = communeRepository.findByName(datos[1]);
                     streetRepository.save(new Street(datos[0], commune));
-                    LOGGER.log(Level.INFO,"Nueva calle: " + datos[0] + "... Comuna: " + datos[1]);
+                    LOGGER.log(Level.INFO,"New street: " + datos[0] + "... Commune: " + datos[1]);
                 } else {
-                    LOGGER.log(Level.INFO,"Calle eliminada...");
+                    LOGGER.log(Level.INFO,"Street was ignored...");
                 }
             }
         } catch (IOException e) {
@@ -128,29 +133,29 @@ public class Seed implements ApplicationRunner {
     }
 
     private void initMetrics() {
-        List<Occurrence> occurrences = Occurrence.getAll(categoryRepository, communeRepository);
+        List<Occurrence> occurrences = occurrenceRepository.findAllByOrderByDateAsc();
         for(Occurrence occurrence: occurrences) {
-            Date occurrenceDate = occurrence.getDate();
-            for(Category category: occurrence.getCategories()) {
+            Date date = occurrence.getDate();
+            LOGGER.log(Level.INFO,"Occurrence: date = " + date);
+            Commune commune = communeRepository.findByName(occurrence.getCommune());
+            for(String categoryName: occurrence.getCategories()) {
                 // Metrics by category and commune
+                Category category = categoryRepository.findByName(categoryName);
                 Metric metric = metricRepository
-                        .findByMetricDateAndCategoryAndCommune(occurrenceDate, category, occurrence.getCommune());
+                        .findByMetricDateAndCategoryAndCommune(date, category, commune);
 
                 if(metric == null)
-                    metric = new Metric(
-                            category,
-                            occurrence.getCommune(),
-                            occurrenceDate);
+                    metric = new Metric(category, commune, date);
 
                 metric.incrementCount();
                 metricRepository.save(metric);
 
                 // Metrics globally by category
                 CategoryMetric categoryMetric = categoryMetricRepository
-                        .findByMetricDateAndCategory(occurrenceDate, category);
+                        .findByMetricDateAndCategory(date, category);
 
                 if(categoryMetric == null)
-                    categoryMetric = new CategoryMetric(category, occurrenceDate);
+                    categoryMetric = new CategoryMetric(category, date);
 
                 categoryMetric.incrementCount();
                 categoryMetricRepository.save(categoryMetric);
@@ -158,10 +163,10 @@ public class Seed implements ApplicationRunner {
 
             // Metrics globally by commune
             CommuneMetric communeMetric = communeMetricRepository
-                    .findByMetricDateAndCommune(occurrenceDate, occurrence.getCommune());
+                    .findByMetricDateAndCommune(date, commune);
 
             if(communeMetric == null)
-                communeMetric = new CommuneMetric(occurrence.getCommune(), occurrenceDate);
+                communeMetric = new CommuneMetric(commune, date);
 
             communeMetric.incrementCount();
             communeMetricRepository.save(communeMetric);

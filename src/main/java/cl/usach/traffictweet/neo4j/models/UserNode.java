@@ -9,25 +9,25 @@ import javax.persistence.GeneratedValue;
 import java.util.ArrayList;
 import java.util.List;
 
-@NodeEntity
+@NodeEntity(label = "User")
 public class UserNode {
     public static final String REPORTED = "REPORTED";
 
     @Id
     @GeneratedValue
-    Long id;
+    private Long id;
 
-    String username;
+    private String username;
 
     @Relationship(type = REPORTED)
     @JsonIgnore
-    List<OccurrenceNode> reportedOccurrenceNodes;
+    private List<OccurrenceNode> reportedOccurrences = new ArrayList<>();
 
     public UserNode() {}
 
     public UserNode(String username) {
         this.username = username;
-        this.reportedOccurrenceNodes = new ArrayList<>();
+        this.reportedOccurrences = new ArrayList<>();
     }
 
     public Long getId() {
@@ -38,7 +38,7 @@ public class UserNode {
         return username;
     }
 
-    public List<OccurrenceNode> getReportedOccurrenceNodes() {
-        return reportedOccurrenceNodes;
+    public List<OccurrenceNode> getReportedOccurrences() {
+        return reportedOccurrences;
     }
 }

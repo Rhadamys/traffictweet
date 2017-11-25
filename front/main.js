@@ -33,7 +33,8 @@ const routes = [
     {
         path: '/occurrences/:id',
         component: Occurrence,
-        props: true
+        props: true,
+        canReuse: false
     }
 ]
 

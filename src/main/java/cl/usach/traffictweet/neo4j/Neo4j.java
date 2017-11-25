@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.neo4j;
 
+import cl.usach.traffictweet.mongo.models.Occurrence;
+import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.neo4j.models.CommuneNode;
 import cl.usach.traffictweet.neo4j.models.OccurrenceNode;
 import cl.usach.traffictweet.neo4j.models.UserNode;
@@ -30,6 +32,7 @@ public class Neo4j implements ApplicationRunner {
     private final static Logger LOGGER = Logger.getLogger(Neo4j.class.getName());
 
     private static OccurrenceNodeRepository occurrenceNodeRepository;
+    private static OccurrenceRepository occurrenceRepository;
     private static CommuneNodeRepository communeNodeRepository;
     private static UserNodeRepository userNodeRepository;
     private static CommuneRepository communeRepository;
@@ -37,10 +40,12 @@ public class Neo4j implements ApplicationRunner {
     @Autowired
     public Neo4j(
             OccurrenceNodeRepository occurrenceNodeRepository,
+            OccurrenceRepository occurrenceRepository,
             CommuneNodeRepository communeNodeRepository,
             UserNodeRepository userNodeRepository,
             CommuneRepository communeRepository) {
         Neo4j.occurrenceNodeRepository = occurrenceNodeRepository;
+        Neo4j.occurrenceRepository = occurrenceRepository;
         Neo4j.communeNodeRepository = communeNodeRepository;
         Neo4j.userNodeRepository = userNodeRepository;
         Neo4j.communeRepository = communeRepository;
@@ -58,42 +63,42 @@ public class Neo4j implements ApplicationRunner {
         occurrenceNodeRepository.deleteAll();
 
         Iterable<Commune> communes = communeRepository.findAll();
-        HashMap<String, CommuneNode> nodesCommunes = new HashMap<>();
+        HashMap<String, CommuneNode> communeNodes = new HashMap<>();
         // Create communes nodes
         for(Commune commune: communes) {
-            CommuneNode nodeCommuneNode = new CommuneNode(commune.getName());
-            communeNodeRepository.save(nodeCommuneNode);
-            nodesCommunes.put(nodeCommuneNode.getName(), nodeCommuneNode);
+            if(commune.getName().equals(Constant.UNKNOWN_COMMUNE)) continue;
+            CommuneNode communeNode = new CommuneNode(commune.getName());
+            communeNode = communeNodeRepository.save(communeNode);
+            communeNodes.put(communeNode.getName(), communeNode);
         }
 
         // Create relationship ADJACENT_TO
         for(Commune commune: communes) {
-            CommuneNode nodeCommuneNode = nodesCommunes.get(commune.getName());
+            if(commune.getName().equals(Constant.UNKNOWN_COMMUNE)) continue;
+            CommuneNode communeNode = communeNodes.get(commune.getName());
             for(Commune adjacent: commune.getAdjacentCommunes())
-                nodeCommuneNode.addAdjacent(nodesCommunes.get(adjacent.getName()));
-            communeNodeRepository.save(nodeCommuneNode);
+                communeNode.addAdjacent(communeNodes.get(adjacent.getName()));
+            communeNodeRepository.save(communeNode);
         }
 
-
-        MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-        MongoDatabase docDatabase = mongo.getDatabase(Constant.PRODUCTION_DB);
-        MongoCollection<Document> collection = docDatabase.getCollection(Constant.EVENTS_COLLECTION);
+        Iterable<Occurrence> occurrences = occurrenceRepository.findAllByOrderByDateAsc();
         LOGGER.log(Level.INFO,"Creating nodes...");
-        for(Document document : collection.find())
-            insertNode(document);
+        for(Occurrence occurrence : occurrences)
+            insertNode(occurrence);
 
-        mongo.close();
         LOGGER.log(Level.INFO,"Neo4j module finished successfully!");
     }
     
-    public static void insertNode(Document document) {
-        if(!document.getString(Constant.COMMUNE_FIELD).equals(Constant.UNKNOWN_COMMUNE)) {
+    public static void insertNode(Occurrence occurrence) {
+        if(occurrence.getCommune().equals(Constant.UNKNOWN_COMMUNE))
+            LOGGER.log(Level.INFO,"Node has unknown commune. Will be ignored...");
+        else {
             LOGGER.log(Level.INFO,"Creating node...");
-            String tweetId = document.getString(Constant.TWEET_FIELD);
-            String username = document.getString(Constant.USER_FIELD);
-            String text = document.getString(Constant.TEXT_FIELD);
-            String commune = document.getString(Constant.COMMUNE_FIELD);
-            Date date = document.getDate(Constant.DATE_FIELD);
+            String tweetId = occurrence.getTweetId();
+            String username = occurrence.getUsername();
+            String text = occurrence.getText();
+            String commune = occurrence.getCommune();
+            Date date = occurrence.getDate();
             Long millis = date.getTime();
 
             // User wich reported the occurrence
@@ -115,7 +120,6 @@ public class Neo4j implements ApplicationRunner {
 
             LOGGER.log(Level.INFO,"Relationships created successfully!");
             LOGGER.log(Level.INFO,"Node created successfully!");
-        } else
-            LOGGER.log(Level.INFO,"Node has unknown commune. Will be ignored...");
+        }
     }
 }

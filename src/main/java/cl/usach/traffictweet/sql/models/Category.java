@@ -21,9 +21,6 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "category_key", unique = true, nullable = false)
-    private String key;
-
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
@@ -54,17 +51,14 @@ public class Category {
     public Category() { }
 
     public Category(String name) {
-        this.key = Util.clean(name);
         this.name = name;
         this.keywords = new HashSet<>();
+        this.metrics = new HashSet<>();
+        this.categoryMetrics = new HashSet<>();
     }
 
     public int getId() {
         return id;
-    }
-
-    public String getKey() {
-        return key;
     }
 
     public String getName() {

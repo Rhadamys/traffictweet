@@ -9,29 +9,30 @@ import javax.persistence.GeneratedValue;
 import java.util.ArrayList;
 import java.util.List;
 
-@NodeEntity
+@NodeEntity(label = "Commune")
 public class CommuneNode {
     public static final String ADJACENT_TO = "ADJACENT_TO";
 
     @Id
     @GeneratedValue
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
     @Relationship(type = ADJACENT_TO)
     @JsonIgnore
-    List<CommuneNode> adjacent;
+    private List<CommuneNode> adjacent = new ArrayList<>();
 
     @Relationship(type = OccurrenceNode.REPORTED_AT, direction = Relationship.INCOMING)
     @JsonIgnore
-    List<OccurrenceNode> occurrenceNodes;
+    private List<OccurrenceNode> occurrences = new ArrayList<>();
 
     public CommuneNode() {}
 
     public CommuneNode(String name) {
         this.name = name;
         this.adjacent = new ArrayList<>();
+        this.occurrences = new ArrayList<>();
     }
 
     public Long getId() {
@@ -50,7 +51,7 @@ public class CommuneNode {
         this.adjacent.add(communeNode);
     }
 
-    public List<OccurrenceNode> getOccurrenceNodes() {
-        return occurrenceNodes;
+    public List<OccurrenceNode> getOccurrences() {
+        return occurrences;
     }
 }

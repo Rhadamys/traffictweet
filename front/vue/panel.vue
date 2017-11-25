@@ -15,8 +15,8 @@
             </div>
         </div>
         <div v-if="loading">
-            <div class="loading text-center">
-                <i class="fa fa-spinner" aria-hidden="true" style="font-size: 10em"></i>&ensp;
+            <div class="alert text-center">
+                <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em"></i>&ensp;
                 <h3>Cargando...</h3>
             </div>
         </div>
@@ -31,7 +31,7 @@
                     </div>
                 </div>
             </div>
-            <div class="loading text-center" v-else>
+            <div class="alert text-center" v-else>
                 <i class="fa fa-twitter" aria-hidden="true" style="font-size: 10em"></i>&ensp;
                 <h3 v-if="search === '' && searched">Ningún reporte para hoy... intenta aplicando un filtro de búsqueda</h3>
                 <h3 v-else>La búsqueda no ha arrojado resultados</h3>
@@ -59,7 +59,7 @@ export default {
     },
     methods: {
         tweetsOfToday: function () {
-            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences')
+            this.$http.get('http://localhost:9090/occurrences')
                 .then(response => {
                     this.calendar = this.getOccurrencesCalendar(response.body);
                     this.loading = false;
@@ -73,7 +73,7 @@ export default {
                 this.tweetsOfToday();
             } else {
                 this.loading = true;
-                this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences?search=' + this.search)
+                this.$http.get('http://localhost:9090/occurrences?search=' + this.search)
                     .then(response => {
                         this.calendar = this.getOccurrencesCalendar(response.body);
                         this.loading = false;

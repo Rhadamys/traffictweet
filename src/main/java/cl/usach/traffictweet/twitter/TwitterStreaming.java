@@ -1,24 +1,20 @@
 package cl.usach.traffictweet.twitter;
 
+import cl.usach.traffictweet.mongo.models.Occurrence;
+import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
+import cl.usach.traffictweet.neo4j.Neo4j;
 import cl.usach.traffictweet.sql.models.Category;
 import cl.usach.traffictweet.sql.models.*;
-import cl.usach.traffictweet.neo4j.Neo4j;
 import cl.usach.traffictweet.sql.repositories.*;
-import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.MatchCase;
 import cl.usach.traffictweet.utils.Util;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import org.apache.commons.io.IOUtils;
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import twitter4j.*;
 
-//import javax.websocket.Session;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,12 +23,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//import javax.websocket.Session;
+
 @Component
 public class TwitterStreaming implements ApplicationRunner {
 	private final static java.util.logging.Logger LOGGER = Logger.getLogger(TwitterStreaming.class.getName());
 
 	private static final int MAX_LAST_TWEETS = 5;
 
+	private OccurrenceRepository occurrenceRepository;
 	private CategoryRepository categoryRepository;
 	private CommuneRepository communeRepository;
 	private MetricRepository metricRepository;
@@ -40,32 +39,37 @@ public class TwitterStreaming implements ApplicationRunner {
 	private CommuneMetricRepository communeMetricRepository;
 
 	private final TwitterStream twitterStream;
-	private List<String> keywords;
-	private List<String> lastTweets;
+	private final List<String> keywords;
+	private final List<String> lastTweets;
 
 	@Autowired
 	public TwitterStreaming(
+			OccurrenceRepository occurrenceRepository,
 			CategoryRepository categoryRepository,
 			CommuneRepository communeRepository,
 			MetricRepository metricRepository,
 			CategoryMetricRepository categoryMetricRepository,
 			CommuneMetricRepository communeMetricRepository) {
+		this.occurrenceRepository = occurrenceRepository;
 		this.categoryRepository = categoryRepository;
 		this.communeRepository = communeRepository;
 		this.metricRepository = metricRepository;
 		this.categoryMetricRepository = categoryMetricRepository;
 		this.communeMetricRepository = communeMetricRepository;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
+
+		this.keywords = new ArrayList<>();
 		this.lastTweets = new ArrayList<>();
+
 		loadKeywords();
 	}
 
 	private void loadKeywords() {
 		try {
 			ClassLoader classLoader = getClass().getClassLoader();
-			keywords = IOUtils.readLines(
-					classLoader.getResourceAsStream("words.dat"),
-					"UTF-8");
+			keywords.addAll(
+					IOUtils.readLines(
+							classLoader.getResourceAsStream("words.dat"),"UTF-8"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -95,32 +99,22 @@ public class TwitterStreaming implements ApplicationRunner {
 
 			@Override
 			public void onStatus(Status status) {
-				MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-
-				// Accessing the database
-				MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-				MongoCollection<Document> collection;
-
 				// Creating document
 				LOGGER.log(Level.INFO, "Generating document...");
-				Document document = new Document(Constant.TWEET_FIELD, String.valueOf(status.getId()))
-						.append(Constant.DATE_FIELD, new Date())
-						.append(Constant.USER_FIELD, status.getUser().getScreenName())
-						.append(Constant.IMAGE_FIELD, status.getUser().getOriginalProfileImageURL())
-						.append(Constant.TEXT_FIELD, status.getText());
-
 				boolean isTheSame = false;
-				int i = 0;
-				while(!isTheSame && i < lastTweets.size()) {
-					String tweet = lastTweets.get(i);
-					if(Util.isSameText(status.getText(), tweet)) isTheSame = true;
-					i++;
-				}
+				synchronized (lastTweets) {
+					int i = 0;
+					while(!isTheSame && i < lastTweets.size()) {
+						String tweet = lastTweets.get(i);
+						if(Util.isSameText(status.getText(), tweet)) isTheSame = true;
+						i++;
+					}
 
-				if(!isTheSame) {
-					if(lastTweets.size() == MAX_LAST_TWEETS)
-						lastTweets.remove(0);
-					lastTweets.add(status.getText());
+					if(!isTheSame) {
+						if(lastTweets.size() == MAX_LAST_TWEETS)
+							lastTweets.remove(0);
+						lastTweets.add(status.getText());
+					}
 				}
 
 				MatchCase matchCase = isTheSame ?
@@ -129,27 +123,13 @@ public class TwitterStreaming implements ApplicationRunner {
 				LOGGER.log(Level.INFO, "Tweet, probability of be a valid event: " + matchCase);
 				if(matchCase == MatchCase.MATCH) {
 					System.out.println("Generating occurrence...");
-					document = appendOccurrenceData(document);
-					collection = database.getCollection(Constant.EVENTS_COLLECTION);
+					Occurrence occurrence = storeOccurrence(status);
+					Neo4j.insertNode(occurrence);
 
-					Neo4j.insertNode(document);
+					LOGGER.log(Level.INFO, "Document inserted successfully!");
 				} else {
-					String collectionName = matchCase == MatchCase.POSSIBLE ?
-							Constant.POSSIBLE_COLLECTION :
-							Constant.IGNORED_COLLECTION;
-
-					if(database.getCollection(collectionName).count() >= Constant.MAX_IGNORED_TWEETS) {
-						LOGGER.log(Level.INFO, "Cleaning " + collectionName + " tweets collection...");
-						database.getCollection(collectionName).drop();
-					}
-
-					collection = database.getCollection(collectionName);
+					LOGGER.log(Level.INFO, "Document was ignored...");
 				}
-
-				collection.insertOne(document);
-				LOGGER.log(Level.INFO, "Document inserted successfully!");
-
-				mongo.close();
 			}
 		};
 
@@ -163,13 +143,17 @@ public class TwitterStreaming implements ApplicationRunner {
 		this.twitterStream.filter(fq);
 	}
 
-	private Document appendOccurrenceData(Document document) {
+	private Occurrence storeOccurrence(Status status) {
+		String tweetId = String.valueOf(status.getId());
+		String username = status.getUser().getScreenName();
+		String image = status.getUser().getOriginalProfileImageURL();
+		String text = status.getText();
+
 		List<Category> categories = new ArrayList<>();
 		categoryRepository.findAll().forEach(categories::add);
 		Iterable<Commune> communes = communeRepository.findAll();
 		Iterator<Commune> communeIterator = communes.iterator();
 
-		String text = document.get(Constant.TEXT_FIELD).toString();
 		Commune commune, occurrenceCommune = communeIterator.next();
 		boolean found = false;
 		while ((commune = communeIterator.next()) != null && !found) {
@@ -184,8 +168,6 @@ public class TwitterStreaming implements ApplicationRunner {
 			}
 		}
 
-		document.append(Constant.COMMUNE_FIELD, occurrenceCommune.getName());
-
 		List<String> occurrenceCategories = new ArrayList<String>();
 		for (Category category : categories) {
 			List<String> keywords = new ArrayList<>();
@@ -193,14 +175,16 @@ public class TwitterStreaming implements ApplicationRunner {
 				keywords.add(keyword.getName());
 
 			if (Util.match(text, keywords) == MatchCase.MATCH) {
-				occurrenceCategories.add(category.getKey());
+				occurrenceCategories.add(category.getName());
 				Metric.update(metricRepository, category, occurrenceCommune);
 				CategoryMetric.update(categoryMetricRepository,category);
 			}
 		}
 
 		CommuneMetric.update(communeMetricRepository, occurrenceCommune);
-		document.append(Constant.CATEGORIES_FIELD, occurrenceCategories);
-		return document;
+
+		Occurrence occurrence = new Occurrence(tweetId, username, image, text, new Date(),
+				occurrenceCommune.getName(), occurrenceCategories);
+		return occurrenceRepository.save(occurrence);
 	}
 }

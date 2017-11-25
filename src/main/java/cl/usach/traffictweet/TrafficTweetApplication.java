@@ -6,6 +6,7 @@ import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import java.time.ZoneId;
 import java.util.TimeZone;
 
 @SpringBootApplication
@@ -19,6 +20,6 @@ public class TrafficTweetApplication {
 	@PostConstruct
 	void started() {
 		// Changes the default time zone to Santiago de Chile
-		TimeZone.setDefault(TimeZone.getTimeZone("America/Santiago"));
+		TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("America/Santiago")));
 	}
 }
