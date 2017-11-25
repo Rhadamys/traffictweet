@@ -2,16 +2,10 @@ package cl.usach.traffictweet.mongo.services;
 
 import cl.usach.traffictweet.mongo.models.Occurrence;
 import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
-import cl.usach.traffictweet.sql.models.Category;
-import cl.usach.traffictweet.sql.models.Commune;
-import cl.usach.traffictweet.sql.repositories.CategoryRepository;
-import cl.usach.traffictweet.sql.repositories.CommuneRepository;
 import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.utils.Constant;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
+import cl.usach.traffictweet.utils.Month;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +25,15 @@ public class OccurrenceService {
      */
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    public List<Occurrence> getAll() {
-        Date now = new Date();
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(now);
-        calendar.set(Calendar.HOUR, 0);
+    public List<HashMap<String, Object>> getAll() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        return findBetweenDates(calendar.getTime(), now);
+        List<Occurrence> occurrences = occurrenceRepository.findAllByDateAfterOrderByDateDesc(calendar.getTime());
+        System.out.println(calendar.getTime());
+        return getCalendar(occurrences);
     }
 
     /**
@@ -84,7 +79,7 @@ public class OccurrenceService {
             method = RequestMethod.GET,
             params = "search")
     @ResponseBody
-    public List<Occurrence> search(@RequestParam("search") String search) {
+    public List<HashMap<String, Object>> search(@RequestParam("search") String search) {
         List<org.apache.lucene.document.Document> hits = Lucene.search(search);
 
         List<Occurrence> occurrences =  new ArrayList<>();
@@ -94,7 +89,7 @@ public class OccurrenceService {
         }
 
         occurrences.sort((o1, o2) -> -o1.getDate().compareTo(o2.getDate()));
-        return occurrences;
+        return getCalendar(occurrences);
     }
 
     /**
@@ -105,16 +100,49 @@ public class OccurrenceService {
      */
     @RequestMapping(
             method = RequestMethod.GET,
-            params = {"from", "to"})
+            params = { "from", "to" })
     @ResponseBody
-    public List<Occurrence> findBetweenDates(
+    public List<HashMap<String, Object>> findBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
+        Calendar calendar = Calendar.getInstance();
         calendar.setTime(to);
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
-        return occurrenceRepository.findAllByDateBetweenOrderByDateDesc(from, calendar.getTime());
+        List<Occurrence> occurrences = occurrenceRepository.findAllByDateBetweenOrderByDateDesc(
+                from, calendar.getTime());
+        return getCalendar(occurrences);
+    }
+
+    private List<HashMap<String, Object>> getCalendar(List<Occurrence> occurrences) {
+        Calendar calendar = Calendar.getInstance();
+        List<HashMap<String, Object>> occurrencesCalendar = new ArrayList<>();
+        HashMap<String, Object> occurrencesDate = null;
+        List<Occurrence> occurrencesFromDate = null;
+        String currentDate = null;
+        int currentDay = 0;
+        for(Occurrence occurrence: occurrences) {
+            calendar.setTime(occurrence.getDate());
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            if(day != currentDay) {
+                if(occurrencesDate != null) {
+                    occurrencesDate.put("date", currentDate);
+                    occurrencesDate.put("occurrences", occurrencesFromDate);
+                    occurrencesCalendar.add(occurrencesDate);
+                }
+
+                occurrencesDate = new HashMap<>();
+                occurrencesFromDate = new ArrayList<>();
+
+                String month = Month.values()[calendar.get(Calendar.MONTH)].toString().toLowerCase();
+                currentDate = day + " de " + month +" de " + calendar.get(Calendar.YEAR);
+                currentDay = day;
+            }
+
+            occurrencesFromDate.add(occurrence);
+        }
+
+        return occurrencesCalendar;
     }
 }

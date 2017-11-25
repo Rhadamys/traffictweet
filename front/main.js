@@ -4,7 +4,7 @@ import VueResource from 'vue-resource';
 import App from './vue/app.vue';
 import Index from './vue/index.vue';
 import Panel from './vue/panel.vue';
-import Graphs from './vue/graphs.vue';
+import Graphs from './vue/charts.vue';
 import About from './vue/about.vue';
 import Occurrence from './vue/occurrence.vue';
 require("./css/app.scss");
@@ -33,8 +33,7 @@ const routes = [
     {
         path: '/occurrences/:id',
         component: Occurrence,
-        props: true,
-        canReuse: false
+        props: true
     }
 ]
 

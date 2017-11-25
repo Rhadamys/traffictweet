@@ -38,16 +38,12 @@ public class CategoryMetric {
 
     public CategoryMetric(Category category, int count) {
         this.category = category;
-        this.metricDate = new Date();
+        this.metricDate = null;
         this.count = count;
     }
 
     public Category getCategory() {
         return category;
-    }
-
-    public String getCategoryKey() {
-        return category.getKey();
     }
 
     public int getCount() {
@@ -60,10 +56,6 @@ public class CategoryMetric {
 
     public void incrementCount() {
         this.count++;
-    }
-
-    public void increaseCount(int inc) {
-        this.count += inc;
     }
 
     public static void update(

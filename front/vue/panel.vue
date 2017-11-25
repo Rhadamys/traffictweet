@@ -14,19 +14,17 @@
                 </div>
             </div>
         </div>
-        <div v-if="loading">
-            <div class="alert text-center">
-                <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em"></i>&ensp;
-                <h3>Cargando...</h3>
-            </div>
+        <div class="alert text-center" v-if="loading">
+            <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em"></i>&ensp;
+            <h3>Cargando...</h3>
         </div>
         <div v-else>
             <div v-if="calendar.length > 0">
-                <div v-for="date in calendar">
-                    <h3 v-if="calendar.length > 1" class="date-header">{{ date.date }}</h3>
-                    <div class="row" v-for="i in Math.ceil(date.tweets.length / 3)">
-                        <div v-for="tweet in date.tweets.slice((i - 1) * 3, i * 3)" class="col-md-4">
-                            <tweet v-bind="tweet" v-bind:key="tweet.tweetId" details="true"></tweet>
+                <div v-for="day in calendar">
+                    <h3 v-if="calendar.length > 1" class="date-header">{{ day.date }}</h3>
+                    <div class="row" v-for="i in Math.ceil(day.occurrences.length / 3)">
+                        <div v-for="occurrence in day.occurrences.slice((i - 1) * 3, i * 3)" class="col-md-4">
+                            <tweet v-bind="occurrence" v-bind:key="occurrence.tweetId" details="true"></tweet>
                         </div>
                     </div>
                 </div>
@@ -61,7 +59,7 @@ export default {
         tweetsOfToday: function () {
             this.$http.get('http://localhost:9090/occurrences')
                 .then(response => {
-                    this.calendar = this.getOccurrencesCalendar(response.body);
+                    this.calendar = response.body;
                     this.loading = false;
                 }, response => {
                     console.log('Error cargando lista');
@@ -75,50 +73,11 @@ export default {
                 this.loading = true;
                 this.$http.get('http://localhost:9090/occurrences?search=' + this.search)
                     .then(response => {
-                        this.calendar = this.getOccurrencesCalendar(response.body);
+                        this.calendar = response.body;
                         this.loading = false;
                         this.searched = true;
                     });
             }
-        },
-        getOccurrencesCalendar: function (tweets) {
-            let monthNames = [
-                'enero',
-                'febrero',
-                'marzo',
-                'abril',
-                'mayo',
-                'junio',
-                'julio',
-                'agosto',
-                'septiembre',
-                'octubre',
-                'noviembre',
-                'diciembre'
-            ];
-
-            let calendar = [];
-            let baseDate = null;
-            tweets.forEach((tweet) => {
-                const match = /^(\d\d)\/(\d\d)\/(\d{4})/.exec(tweet.date);
-                const day = Number(match[1]);
-                const month = Number(match[2]);
-                const year = Number(match[3]);
-                let date = new Date(year, month, day);
-
-                if (baseDate && date >= baseDate)
-                    calendar[calendar.length - 1].tweets.push(tweet);
-                else {
-                    calendar.push({
-                        date: day + ' de ' + monthNames[month - 1] + ' de ' + year,
-                        tweets: [tweet]
-                    });
-
-                    baseDate = date;
-                }
-            });
-
-            return calendar;
         }
     },
     watch: {

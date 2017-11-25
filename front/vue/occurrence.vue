@@ -38,7 +38,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="panel-body text-center" v-else>
+                    <div class="panel-body text-center alert bottom" v-else>
+                        <i class="fa fa-car" aria-hidden="true" style="font-size: 7.5em"></i>
                         No se han detectado eventos causantes
                     </div>
                 </div>
@@ -46,7 +47,7 @@
             <div class="col-md-7 column">
                 <div class="panel area bottom" id="graph">
                     <div v-if="graph" class="info node-info" id="info">
-                        <b style="text-align: center">SIMBOLOGÍA</b>
+                        <b class="text-center">SIMBOLOGÍA</b>
                         <br><br>
                         <ul>
                             <li style="color: #DD1C1A">Evento</li>

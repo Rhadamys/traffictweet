@@ -43,6 +43,13 @@ public class Metric {
         this.count = 0;
     }
 
+    public Metric(Category category, int count) {
+        this.category = category;
+        this.commune = null;
+        this.metricDate = null;
+        this.count = count;
+    }
+
     public Category getCategory() {
         return category;
     }

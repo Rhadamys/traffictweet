@@ -11,5 +11,6 @@ public interface OccurrenceRepository extends MongoRepository<Occurrence, String
     Occurrence findByTweetId(String tweetId);
     List<Occurrence> findAllByCategoriesContainsOrderByDateDesc(String category);
     List<Occurrence> findAllByCommuneOrderByDateDesc(String commune);
+    List<Occurrence> findAllByDateAfterOrderByDateDesc(Date date);
     List<Occurrence> findAllByDateBetweenOrderByDateDesc(Date from, Date to);
 }

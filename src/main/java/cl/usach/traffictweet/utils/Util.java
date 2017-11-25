@@ -1,9 +1,6 @@
 package cl.usach.traffictweet.utils;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 public class Util {
     public static MatchCase match(String text, List<String> keywordsList) {
@@ -28,10 +25,18 @@ public class Util {
     }
 
     public static boolean isSameText(String text1, String text2) {
-        int charsToMatch = Math.min(text1.length(), text2.length()) / 2;
-        String sub1 = clean(text1.substring(0, charsToMatch));
-        String sub2 = clean(text2.substring(0, charsToMatch));
-        return sub1.equals(sub2);
+        ArrayList<String> wordsText1 = new ArrayList<>();
+        wordsText1.addAll(Arrays.asList(text1.split(" ")));
+
+        ArrayList<String> wordsText2 = new ArrayList<>();
+        wordsText2.addAll(Arrays.asList(text2.split(" ")));
+        if(Math.abs(wordsText1.size() - wordsText2.size()) > 3) return false;
+
+        int match = 0;
+        for(String word: wordsText1)
+            if(wordsText2.contains(word)) match++;
+
+        return (match * 100.0 / wordsText1.size()) >= 80.0;
     }
 
     public static String clean(String text) {

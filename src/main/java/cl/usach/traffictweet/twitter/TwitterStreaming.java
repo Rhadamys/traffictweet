@@ -106,7 +106,10 @@ public class TwitterStreaming implements ApplicationRunner {
 					int i = 0;
 					while(!isTheSame && i < lastTweets.size()) {
 						String tweet = lastTweets.get(i);
-						if(Util.isSameText(status.getText(), tweet)) isTheSame = true;
+						if(Util.isSameText(status.getText(), tweet)) {
+							LOGGER.log(Level.INFO, "Same detected:\nTweet:\t" + status.getText() + "\nTemp:\t" + tweet);
+							isTheSame = true;
+						}
 						i++;
 					}
 

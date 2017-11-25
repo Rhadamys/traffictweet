@@ -45,13 +45,26 @@ body {
 /* Paneles */
 .panel-heading {
     background: $accent-color !important;
+
+    h1, h2, h3, h4, label {
+        color: white;
+    }
 }
-.panel-heading {
+
+.meter {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.tweet-heading {
+    padding: 1em;
+    background: $accent-color !important;
     display: flex;
     flex-direction: column;
     color: white;
 
-    .tweet-heading {
+    .title {
         display: flex;
         align-items: flex-start;
         margin-bottom: 0.25em;
@@ -145,23 +158,30 @@ body {
     color: #777;
 }
 
-.graphs {
-    height: 85vh !important;
+.charts {
+    height: 82vh !important;
 
-    .graph-header {
+    .dates-header {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        color: white !important;
-        font-weight: normal !important;
-        align-items: center;
 
-        .date-picker {
-            width: 20vw;
+        .picker {
+            width: 10vw;
         }
     }
 
-    .graph {
+    .horizontal {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        label {
+            margin-right: 1em;
+        }
+    }
+
+    .chart {
         display: flex;
         flex-direction: column;
         align-items: flex-start;

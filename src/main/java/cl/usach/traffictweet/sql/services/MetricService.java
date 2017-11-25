@@ -9,7 +9,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,15 +33,6 @@ public class MetricService {
     }
 
     @RequestMapping(
-            value = "/categories",
-            method = RequestMethod.GET,
-            params = "date")
-    @ResponseBody
-    public List<CategoryMetric> getAllCategoryMetricsByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(date);
-    }
-
-    @RequestMapping(
             value = "/communes/today",
             method = RequestMethod.GET)
     @ResponseBody
@@ -51,48 +41,51 @@ public class MetricService {
     }
 
     @RequestMapping(
-            value = "/communes",
             method = RequestMethod.GET,
-            params = "date")
+            params = { "from", "to" })
     @ResponseBody
-    public List<CommuneMetric> getAllCommuneMetricsByDate(@RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(date);
-    }
-
-    @RequestMapping(
-            method = RequestMethod.GET,
-            params = "commune")
-    @ResponseBody
-    public List<Metric> getMetricsByCommuneAndDate(@RequestParam("commune") String commune) {
-        Date now = new Date();
+    public HashMap<String, Object> getMetricsDashboard(
+            @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
+            @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(now);
-        calendar.set(Calendar.HOUR, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        calendar.setTime(to);
+        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        to = calendar.getTime();
 
-        return getMetricsByCommuneAndBetweenDates(commune, calendar.getTime(), now);
+        HashMap<String, Object> dashboard = new HashMap<>();
+        List<HashMap<String, Object>> communeMetrics = new ArrayList<>();
+        Map<Commune, Integer> communeSums = getCommuneMetricsSum(from, to);
+        communeSums.forEach((commune, comCount) -> {
+            HashMap<String, Object> communeMetric = new HashMap<>();
+            communeMetric.put("commune", commune.getName());
+            communeMetric.put("count", comCount);
+
+            List<HashMap<String, Object>> categoryMetrics = new ArrayList<>();
+            Map<Category, Integer> categorySums = getMetricsByCommuneSum(commune.getName(), from, calendar.getTime());
+            categorySums.forEach((category, catCount) -> {
+                categoryMetrics.add(getCategoryMetricMap(category, catCount));
+            });
+
+            communeMetric.put("categories", categoryMetrics);
+            communeMetrics.add(communeMetric);
+        });
+
+        List<HashMap<String, Object>> categoryMetrics = new ArrayList<>();
+        Map<Category, Integer> categorySums = getCategoryMetricsSum(from, calendar.getTime());
+        categorySums.forEach((category, catCount) -> {
+            categoryMetrics.add(getCategoryMetricMap(category, catCount));
+        });
+
+        dashboard.put("communeMetrics", communeMetrics);
+        dashboard.put("categoryMetrics", categoryMetrics);
+        return dashboard;
     }
 
     @RequestMapping(
             method = RequestMethod.GET,
-            params = {"commune", "date"})
-    @ResponseBody
-    public List<Metric> getMetricsByCommuneAndDate(
-            @RequestParam("commune") String commune,
-            @RequestParam("date") @DateTimeFormat(pattern="yyyy-MM-dd") Date date) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(date);
-        calendar.set(Calendar.HOUR, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-
-        return getMetricsByCommuneAndBetweenDates(commune, calendar.getTime(), date);
-    }
-
-    @RequestMapping(
-            method = RequestMethod.GET,
-            params = {"commune", "from", "to"})
+            params = { "commune", "from", "to" })
     @ResponseBody
     public List<Metric> getMetricsByCommuneAndBetweenDates(
             @RequestParam("commune") String commune,
@@ -104,14 +97,16 @@ public class MetricService {
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 
-        return metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
-                commune, from, calendar.getTime());
+        List<Metric> result = new ArrayList<>();
+        Map<Category, Integer> sums = getMetricsByCommuneSum(commune, from, calendar.getTime());
+        sums.forEach((key, value) -> result.add(new Metric(key, value)));
+        return result;
     }
 
     @RequestMapping(
             value = "/categories",
             method = RequestMethod.GET,
-            params = {"from","to"})
+            params = { "from", "to" })
     @ResponseBody
     public List<CategoryMetric> getMetricsByCategoriesAndBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
@@ -122,20 +117,17 @@ public class MetricService {
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 
-        List<CategoryMetric> metrics= categoryMetricRepository.findByMetricDateBetweenOrderByCategoryAsc(from,calendar.getTime());
-
-        Map<Category, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CategoryMetric::getCategory, Collectors.summingInt(CategoryMetric::getCount)));
 
         List<CategoryMetric> result = new ArrayList<>();
-        sums.entrySet().stream().forEach(e->result.add(new CategoryMetric(e.getKey(), e.getValue())));
-
+        Map<Category, Integer> sums = getCategoryMetricsSum(from, calendar.getTime());
+        sums.forEach((key, value) -> result.add(new CategoryMetric(key, value)));
         return result;
     }
 
     @RequestMapping(
             value = "/communes",
             method = RequestMethod.GET,
-            params = {"from","to"})
+            params = { "from", "to" })
     @ResponseBody
     public List<CommuneMetric> getMetricsByCommunesAndBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
@@ -146,14 +138,40 @@ public class MetricService {
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 
-        List<CommuneMetric> metrics= communeMetricRepository.findByMetricDateBetweenOrderByCommuneAsc(from,calendar.getTime());
-
-        Map<Commune, Integer> sums = metrics.stream().collect(Collectors.groupingBy(CommuneMetric::getCommune, Collectors.summingInt(CommuneMetric::getCount)));
-
         List<CommuneMetric> result = new ArrayList<>();
-        sums.entrySet().stream().forEach(e->result.add(new CommuneMetric(e.getKey(), e.getValue())));
+        Map<Commune, Integer> sums = getCommuneMetricsSum(from, calendar.getTime());
+        sums.forEach((key, value) -> result.add(new CommuneMetric(key, value)));
 
         return result;
     }
 
+
+    private Map<Category, Integer> getMetricsByCommuneSum(String commune, Date from, Date to) {
+        List<Metric> metrics = metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
+                commune, from,to);
+        return metrics.stream().collect(
+                Collectors.groupingBy(
+                        Metric::getCategory,
+                        Collectors.summingInt(Metric::getCount)));
+    }
+    private Map<Category, Integer> getCategoryMetricsSum(Date from, Date to) {
+        List<CategoryMetric> metrics = categoryMetricRepository.findByMetricDateBetweenOrderByCategoryAsc(from, to);
+        return metrics.stream().collect(
+                Collectors.groupingBy(
+                        CategoryMetric::getCategory,
+                        Collectors.summingInt(CategoryMetric::getCount)));
+    }
+    private Map<Commune, Integer> getCommuneMetricsSum(Date from, Date to) {
+        List<CommuneMetric> metrics= communeMetricRepository.findByMetricDateBetweenOrderByCommuneAsc(from, to);
+        return metrics.stream().collect(
+                Collectors.groupingBy(
+                        CommuneMetric::getCommune,
+                        Collectors.summingInt(CommuneMetric::getCount)));
+    }
+    private HashMap<String, Object> getCategoryMetricMap(Category category,int count) {
+        HashMap<String, Object> categoryMetric = new HashMap<>();
+        categoryMetric.put("category", category.getName());
+        categoryMetric.put("count", count);
+        return categoryMetric;
+    }
 }
