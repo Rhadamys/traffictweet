@@ -41,7 +41,7 @@ export default {
         const month = today.getMonth() + 1;
         const day = today.getDate();
         const date = year + '-' + month + '-' + day;
-        this.$http.get('http://localhost:9090/metrics?from=' + date + '&to=' + date)
+        this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?from=' + date + '&to=' + date)
             .then(response => {
                 this.metrics = response.body;
             }, response => {

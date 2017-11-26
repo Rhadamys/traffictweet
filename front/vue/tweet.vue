@@ -3,8 +3,7 @@
         <div class="tweet-heading">
             <div class="title">
                 <img v-bind:src="image"
-                     class="img-circle img-responsive img"
-                     alt="Imagen de usuario"/>
+                     class="img-circle img-responsive img"/>
                 @{{ username }}
             </div>
             <i class="tweet-date">

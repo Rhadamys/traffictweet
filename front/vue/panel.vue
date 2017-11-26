@@ -5,12 +5,28 @@
             <li class="active">Panel de tweets</li>
         </ol>
         <div class="panel panel-body">
-            <div class="input-group">
-                <input type="text" class="form-control" v-on:keyup.enter="searchTweets" v-model="search" placeholder="Buscar...">
-                <div class="input-group-btn">
-                    <button class="btn btn-success" type="submit" v-on:click="searchTweets">
-                        <i class="glyphicon glyphicon-search"></i>
-                    </button>
+            <div class="row">
+                <div class="col-md-3">
+                    <select class="form-control" v-model="commune">
+                        <option value="">Comuna...</option>
+                        <option v-for="commune in communes">{{ commune.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" v-model="category">
+                        <option value="">Categoría...</option>
+                        <option v-for="category in categories">{{ category.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" v-on:keyup.enter="searchTweets" v-model="search" placeholder="Buscar...">
+                        <div class="input-group-btn">
+                            <button class="btn btn-success" type="submit" v-on:click="searchTweets">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -31,8 +47,7 @@
             </div>
             <div class="alert text-center" v-else>
                 <i class="fa fa-twitter" aria-hidden="true" style="font-size: 10em"></i>&ensp;
-                <h3 v-if="search === '' && searched">Ningún reporte para hoy... intenta aplicando un filtro de búsqueda</h3>
-                <h3 v-else>La búsqueda no ha arrojado resultados</h3>
+                <h3>No se han encontrado reportes... intenta aplicando un filtro de búsqueda</h3>
             </div>
         </div>
     </div>
@@ -46,18 +61,37 @@ export default {
             calendar: [],
             loading: true,
             search: '',
-            searched: true
+            commune: '',
+            category: '',
+            communes: [],
+            categories: []
         }
     },
     components: {
         'tweet': Tweet
     },
     mounted: function () {
+        this.loadData();
         this.tweetsOfToday();
     },
     methods: {
+        loadData: function() {
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/communes')
+                .then(response => {
+                    this.communes = response.body;
+                }, response => {
+                    console.log('Error cargando lista');
+                });
+
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/categories')
+                .then(response => {
+                    this.categories = response.body;
+                }, response => {
+                    console.log('Error cargando lista');
+                });
+        },
         tweetsOfToday: function () {
-            this.$http.get('http://localhost:9090/occurrences')
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences')
                 .then(response => {
                     this.calendar = response.body;
                     this.loading = false;
@@ -67,22 +101,17 @@ export default {
                 });
         },
         searchTweets: function () {
-            if (this.search === '') {
+            if (this.search === '' && this.commune === '' && this.category === '') {
                 this.tweetsOfToday();
             } else {
                 this.loading = true;
-                this.$http.get('http://localhost:9090/occurrences?search=' + this.search)
+                this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/occurrences?search=' + this.search + '&commune=' +
+                    this.commune + '&category=' + this.category)
                     .then(response => {
                         this.calendar = response.body;
                         this.loading = false;
-                        this.searched = true;
                     });
             }
-        }
-    },
-    watch: {
-        search: function() {
-            this.searched = false;
         }
     }
 }

@@ -187,7 +187,7 @@ public class Seed implements ApplicationRunner {
         keywordRepository.save(new Keyword("taco", congestion));
         keywordRepository.save(new Keyword("atochamiento", congestion));
         keywordRepository.save(new Keyword("congestion", congestion));
-        keywordRepository.save(new Keyword("desvío", desvio));
+        keywordRepository.save(new Keyword("desvio", desvio));
         keywordRepository.save(new Keyword("calle,cerrada", desvio));
         keywordRepository.save(new Keyword("desvio,trabajo", desvio));
         keywordRepository.save(new Keyword("desvio,obra", desvio));
@@ -212,7 +212,5 @@ public class Seed implements ApplicationRunner {
         } catch(DataIntegrityViolationException ex) {
             LOGGER.log(Level.WARNING, "Data already populated! If you want to do this again, change configuration to \"create\" in \"application.properties\" file.");
         }
-
-        Lucene.createIndex();
     }
 }

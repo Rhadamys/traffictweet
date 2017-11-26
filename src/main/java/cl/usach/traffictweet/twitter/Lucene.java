@@ -1,5 +1,7 @@
 package cl.usach.traffictweet.twitter;
 
+import cl.usach.traffictweet.mongo.models.Occurrence;
+import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.Util;
 import com.mongodb.MongoClient;
@@ -13,12 +15,12 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -31,13 +33,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
-public class Lucene {
+public class Lucene implements ApplicationRunner {
     private final static Logger LOGGER = Logger.getLogger(Lucene.class.getName());
 
-    public Lucene() { }
+    private static OccurrenceRepository occurrenceRepository;
+
+    @Autowired
+    public Lucene(OccurrenceRepository occurrenceRepository) {
+        Lucene.occurrenceRepository = occurrenceRepository;
+    }
+
+    public void run(ApplicationArguments args) {
+        createIndex();
+    }
 
     @Scheduled(cron = "0 0 * * * *") // Cada hora
-    public static void createIndex() {
+    public void createIndex() {
         Path lucenePath = Paths.get(System.getProperty("catalina.base") + "/webapps/traffictweet/lucene/");
         try {
             LOGGER.log(Level.INFO, "Creating index...");
@@ -49,27 +60,23 @@ public class Lucene {
 
             IndexWriter writer = new IndexWriter(dir,iwc);
 
-            MongoClient mongo = new MongoClient(Constant.MONGO_HOST, Constant.MONGO_PORT);
-            MongoDatabase database = mongo.getDatabase(Constant.PRODUCTION_DB);
-            MongoCollection<org.bson.Document> events = database.getCollection(Constant.EVENTS_COLLECTION);
-
-            for(org.bson.Document document : events.find()) {
-                String tweetId = document.get(Constant.TWEET_FIELD).toString();
-                String text = Util.clean(document.get(Constant.TEXT_FIELD).toString());
-
+            List<Occurrence> occurrences = occurrenceRepository.findAll();
+            for(Occurrence occurrence: occurrences) {
                 org.apache.lucene.document.Document docLucene = new org.apache.lucene.document.Document();
-                docLucene.add(new TextField(Constant.TWEET_FIELD, tweetId, Field.Store.YES));
-                docLucene.add(new TextField(Constant.TEXT_FIELD, text, Field.Store.YES));
+                docLucene.add(new TextField(Constant.TWEET_FIELD, occurrence.getTweetId(), Field.Store.YES));
+                docLucene.add(new TextField(Constant.TEXT_FIELD, occurrence.getText(), Field.Store.YES));
+                docLucene.add(new TextField(Constant.COMMUNE_FIELD, occurrence.getCommune(), Field.Store.YES));
+                for(String category: occurrence.getCategories())
+                    docLucene.add(new TextField(Constant.CATEGORIES_FIELD, category, Field.Store.YES));
 
                 if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
                     writer.addDocument(docLucene);
                 } else {
-                    writer.updateDocument(new Term("path" + document.toString()), docLucene);
+                    writer.updateDocument(new Term("path" + occurrence.toString()), docLucene);
                 }
             }
 
             writer.close();
-            mongo.close();
             LOGGER.log(Level.INFO, "Index created successfully!");
         } catch(IOException ioe) {
             LOGGER.log(Level.WARNING, "Caught a " + ioe.getClass() + " with message: " + ioe.getMessage());
@@ -77,30 +84,45 @@ public class Lucene {
 
     }
 
-    public static List<Document> search(String query) {
+    public static List<Occurrence> search(String query, String commune, String category) {
         Path lucenePath = Paths.get(System.getProperty("catalina.base") + "/webapps/traffictweet/lucene/");
-        List<org.apache.lucene.document.Document> listDocuments = new ArrayList<Document>();
+        List<Occurrence> occurrences = new ArrayList<>();
         query = Util.clean(query);
-        try{            
+        try {
             IndexReader reader = DirectoryReader.open(FSDirectory.open(lucenePath));
             IndexSearcher searcher = new IndexSearcher(reader);
             StandardAnalyzer analyzer = new StandardAnalyzer();
             TopScoreDocCollector collector = TopScoreDocCollector.create(50);
 
-            Query q = new QueryParser(Constant.TEXT_FIELD, analyzer).parse(query);
-            searcher.search(q, collector);
+            Query luceneQuery;
+            BooleanQuery.Builder finalQuery = new BooleanQuery.Builder();
+            if(query.length() > 0) {
+                luceneQuery = new QueryParser(Constant.TEXT_FIELD, analyzer).parse(query);
+                finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
+            }
+            if(commune.length() > 0) {
+                luceneQuery = new QueryParser(Constant.COMMUNE_FIELD, analyzer).parse(commune);
+                finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
+            }
+            if(category.length() > 0) {
+                luceneQuery = new QueryParser(Constant.CATEGORIES_FIELD, analyzer).parse(category);
+                finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
+            }
+
+            searcher.search(finalQuery.build(), collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
 
             LOGGER.log(Level.INFO, "Found " + hits.length + " hits.");
             for (ScoreDoc hit : hits) {
-                int docId = hit.doc;
-                Document d = searcher.doc(docId);
-                listDocuments.add(d);
+                Document document = searcher.doc(hit.doc);
+                String tweetId = document.get(Constant.TWEET_FIELD);
+                Occurrence occurrence = occurrenceRepository.findByTweetId(tweetId);
+                occurrences.add(occurrence);
             }
             reader.close();
         } catch(IOException | ParseException ex) {
             ex.printStackTrace();
         }
-        return listDocuments;
+        return occurrences;
     }
 }

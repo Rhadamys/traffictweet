@@ -15,26 +15,26 @@
                     <div v-if="causes.length > 0" class="table-responsive" style="overflow-y: auto;">
                         <table class="table table-striped">
                             <thead>
-                                <tr>
-                                    <th>
-                                        <i class="fa fa-calendar" aria-hidden="true"></i> Fecha y hora
-                                    </th>
-                                    <th>
-                                        <i class="fa fa-map-marker" aria-hidden="true"></i> Comuna
-                                    </th>
-                                    <th></th>
-                                </tr>
+                            <tr>
+                                <th>
+                                    <i class="fa fa-calendar" aria-hidden="true"></i> Fecha y hora
+                                </th>
+                                <th>
+                                    <i class="fa fa-map-marker" aria-hidden="true"></i> Comuna
+                                </th>
+                                <th></th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="cause in causes">
-                                    <td>{{ cause.date }}</td>
-                                    <td>{{ cause.commune.name }}</td>
-                                    <td>
-                                        <a class="btn btn-xs btn-default" v-bind:href="'#/occurrences/' + cause.tweetId">
-                                            <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Ver evento
-                                        </a>
-                                    </td>
-                                </tr>
+                            <tr v-for="cause in causes">
+                                <td>{{ cause.date }}</td>
+                                <td>{{ cause.commune.name }}</td>
+                                <td>
+                                    <a class="btn btn-xs btn-default" v-bind:href="'#/occurrences/' + cause.tweetId">
+                                        <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Ver evento
+                                    </a>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -81,15 +81,15 @@
         components: {
             'tweet': Tweet
         },
-        mounted: function() {
-          this.loadData();
+        mounted: function () {
+            this.loadData();
         },
         methods: {
             loadData: function () {
-                this.$http.get("http://localhost:9090/occurrences/" + this.id)
+                this.$http.get("http://traffictweet.ddns.net:9090/traffictweet/occurrences/" + this.id)
                     .then(response => {
                         this.occurrence = response.body;
-                        if(this.occurrence.commune !== 'Comuna desconocida')
+                        if (this.occurrence.commune !== 'Comuna desconocida')
                             this.putGraph();
                         else
                             this.graph = false;
@@ -105,7 +105,7 @@
                 let width = graphElm.clientWidth, height = graphElm.clientHeight;
                 // force layout setup
                 let force = d3.layout.force()
-                    .charge(-1000).linkDistance(200).size([width, height]);
+                    .charge(-1000).linkDistance(250).size([width, height]);
 
                 // setup svg div
                 let svg = d3.select("#graph").append("svg:svg")
@@ -114,7 +114,7 @@
 
                 // load graph (nodes,links) json from endpoint
                 let causes = [];
-                d3.json("http://localhost:9090/nodes/occurrences/" + this.id, function (error, graph) {
+                d3.json("http://traffictweet.ddns.net:9090/traffictweet/nodes/occurrences/" + this.id, function (error, graph) {
                     if (error) return;
 
                     graph.nodes[0].label = "current occurrence";
@@ -136,7 +136,11 @@
                     // render relationships as lines
                     let link = svg.selectAll(".link")
                         .data(graph.links).enter()
-                        .append("line").attr("class", "link");
+                        .append("line")
+                        .attr("class", "link")
+                        .attr('marker-end','url(#arrowhead)')
+                        .style("stroke", "black")
+                        .style("pointer-events", "none");
 
                     // render nodes as circles, css-class from label
                     let node = svg.selectAll(".node")
@@ -174,9 +178,21 @@
                         })
                         .call(force.drag);
 
+                    let nodelabels = svg.selectAll(".nodelabel")
+                        .data(graph.nodes).enter()
+                        .append('text')
+                        .attr('text-anchor', 'middle')
+                        .attr('dominant-baseline', 'central')
+                        .attr('font-family', 'FontAwesome')
+                        .attr('font-size', '1.5em')
+                        .attr('fill', 'white')
+                        .text(function (d) {
+                            return d.label === 'commune' ? '\uf041':
+                                d.label === 'user' ? '\uf007': '\uf071';
+                        });
+
                     let edgepaths = svg.selectAll(".edgepath")
-                        .data(graph.links)
-                        .enter()
+                        .data(graph.links).enter()
                         .append('path')
                         .attr({
                             'd': function (d) {
@@ -195,8 +211,7 @@
                         .style("pointer-events", "none");
 
                     let edgelabels = svg.selectAll(".edgelabel")
-                        .data(graph.links)
-                        .enter()
+                        .data(graph.links).enter()
                         .append('text')
                         .style("pointer-events", "none")
                         .attr({
@@ -233,8 +248,8 @@
                         })
                         .append('svg:path')
                         .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-                        .attr('fill', '#ccc')
-                        .attr('stroke', '#ccc');
+                        .attr('fill', '#005A32')
+                        .attr('stroke', '#005A32');
 
                     // force feed algo ticks for coordinate computation
                     force.on("tick", function () {
@@ -250,10 +265,12 @@
 
                         node.attr("cx", function (d) {
                             return d.x;
-                        })
-                            .attr("cy", function (d) {
-                                return d.y;
-                            });
+                        }).attr("cy", function (d) {
+                            return d.y;
+                        });
+
+                        nodelabels.attr("x", function(d) { return d.x; })
+                            .attr("y", function(d) { return d.y; });
 
                         edgepaths.attr('d', function (d) {
                             return 'M ' + d.source.x + ' ' + d.source.y + ' L ' +

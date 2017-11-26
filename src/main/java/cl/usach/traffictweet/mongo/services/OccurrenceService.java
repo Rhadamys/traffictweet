@@ -46,45 +46,18 @@ public class OccurrenceService {
     }
 
     /**
-     * Get all occurrences by category.
-     * @param categoryKey Category.
-     * @return All occurrences that match the category.
+     * Get all occurrences by filter.
+     * @return All occurrences that match the filter.
      */
     @RequestMapping(
             method = RequestMethod.GET,
-            params = "category")
+            params = { "search", "commune", "category" })
     @ResponseBody
-    public List<Occurrence> findByCategory(@RequestParam("category") String categoryKey) {
-        return occurrenceRepository.findAllByCategoriesContainsOrderByDateDesc(categoryKey);
-    }
-
-    /**
-     * Get all occurrence by commune.
-     * @param communeName CommuneNode.
-     * @return All occurrences that match the commune.
-     */
-    @RequestMapping(
-            method = RequestMethod.GET,
-            params = "commune")
-    @ResponseBody
-    public List<Occurrence> findByCommune(@RequestParam("commune") String communeName) {
-        return occurrenceRepository.findAllByCommuneOrderByDateDesc(communeName);
-    }
-
-    @RequestMapping(
-            method = RequestMethod.GET,
-            params = "search")
-    @ResponseBody
-    public List<HashMap<String, Object>> search(@RequestParam("search") String search) {
-        List<org.apache.lucene.document.Document> hits = Lucene.search(search);
-
-        List<Occurrence> occurrences =  new ArrayList<>();
-        for (org.apache.lucene.document.Document hit: hits) {
-            Occurrence occurrence = occurrenceRepository.findByTweetId(hit.get(Constant.TWEET_FIELD));
-            occurrences.add(occurrence);
-        }
-
-        occurrences.sort((o1, o2) -> -o1.getDate().compareTo(o2.getDate()));
+    public List<HashMap<String, Object>> filter(
+            @RequestParam("search") String search,
+            @RequestParam("commune") String commune,
+            @RequestParam("category") String category) {
+        List<Occurrence> occurrences = Lucene.search(search, commune, category);
         return getCalendar(occurrences);
     }
 
@@ -107,6 +80,8 @@ public class OccurrenceService {
     }
 
     private List<HashMap<String, Object>> getCalendar(List<Occurrence> occurrences) {
+        if(occurrences.isEmpty()) return null;
+
         Calendar calendar = Calendar.getInstance();
         List<HashMap<String, Object>> occurrencesCalendar = new ArrayList<>();
         HashMap<String, Object> occurrencesDate = null;

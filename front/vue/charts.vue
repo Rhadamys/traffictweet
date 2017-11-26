@@ -27,7 +27,7 @@
             </div>
             <div class="col-md-5 area">
                 <div class="panel panel-default area">
-                    <div class="panel-body column chart" v-show="metrics.communeMetrics.length > 0">
+                    <div class="column chart" v-show="metrics.communeMetrics.length > 0">
                         <canvas id="chart-categories"></canvas>
                         <canvas id="chart-communes"></canvas>
                     </div>
@@ -98,11 +98,11 @@ export default {
         Datepicker
     },
     mounted: function () {
-        this.putGraphs();
+        this.putCharts();
     },
     methods: {
         // Gráficos
-        putGraphs: function() {
+        putCharts: function() {
             const ctxCategories = document.getElementById("chart-categories").getContext('2d');
             this.categoryChart = new Chart(ctxCategories, {
                 type: 'doughnut',
@@ -206,7 +206,7 @@ export default {
             const from = this.parseDate(this.fromState.date);
             const to = this.parseDate(this.toState.date);
 
-            this.$http.get('http://localhost:9090/metrics?from=' + from + '&to=' + to)
+            this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?from=' + from + '&to=' + to)
                 .then(response => {
                     this.metrics = response.body;
                     this.updateCategoriesChart();

@@ -90,7 +90,7 @@ export default {
                     this._div.innerHTML = body;
                 } else {
                     body +=
-                        '<h4 class="text-center">Eventos por comuna</h4><br>' +
+                        '<h4 class="text-center">Reportes por comuna</h4><br>' +
                         'Posicione el mouse sobre una comuna...' +
                         '<br><br><div style="height: 1em;" class="meter">';
                     this.comp.colors.forEach((color) => {
@@ -126,7 +126,7 @@ export default {
         style: function(feature) {
             const metric = this.findMetric(feature);
             return {
-                fillColor: this.getColor(metric ? metric.count : 0),
+                fillColor: metric ? this.getColor(metric.count): this.colors[0],
                 weight: 2,
                 opacity: 0.8,
                 color: '#003933',
@@ -143,7 +143,8 @@ export default {
             return metricRet;
         },
         getColor: function(val) {
-            return this.colors[parseInt(val * (this.colors.length - 1) / this.metrics.max)];
+            const index = parseInt(val * (this.colors.length - 1) / this.metrics.max);
+            return this.colors[index === 0 ? 1: index];
         },
         // Funciones para pop-ups
         highlightFeature: function(e) {

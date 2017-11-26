@@ -154,12 +154,14 @@ public class TwitterStreaming implements ApplicationRunner {
 
 		List<Category> categories = new ArrayList<>();
 		categoryRepository.findAll().forEach(categories::add);
-		Iterable<Commune> communes = communeRepository.findAll();
-		Iterator<Commune> communeIterator = communes.iterator();
 
-		Commune commune, occurrenceCommune = communeIterator.next();
+		List<Commune> communes = new ArrayList<>();
+		communeRepository.findAll().forEach(communes::add);
+		Commune commune, occurrenceCommune = communes.get(0);
 		boolean found = false;
-		while ((commune = communeIterator.next()) != null && !found) {
+		int i = 1;
+		while (!found && i < communes.size()) {
+			commune = communes.get(i);
 			List<String> keywords = new ArrayList<>();
 			keywords.add(Util.clean(commune.getName()));
 			for(Street street: commune.getStreets())
