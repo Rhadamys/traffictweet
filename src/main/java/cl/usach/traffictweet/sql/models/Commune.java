@@ -22,15 +22,6 @@ public class Commune {
 	@Column(name = "name", unique = true, nullable = false)
 	private String name;
 
-	@Column(name = "x", nullable = false)
-	private double x;
-
-	@Column(name = "y", nullable = false)
-	private double y;
-
-	@Column(name = "z", nullable = false)
-	private int z;
-
 	@ManyToMany
 	@JoinTable(name = "adjacent_communes",
 			joinColumns = @JoinColumn(name = "commune_id", referencedColumnName = "id", nullable = false),
@@ -65,14 +56,8 @@ public class Commune {
 
 	public Commune() { }
 
-	public Commune(String name,
-				   String x,
-				   String y,
-				   String z) {
+	public Commune(String name) {
 		this.name = name;
-		this.x = Double.parseDouble(x);
-		this.y = Double.parseDouble(y);
-		this.z = Integer.parseInt(z);
 		this.adjacentCommunes = new HashSet<>();
 	}
 
@@ -82,18 +67,6 @@ public class Commune {
 
 	public String getName() {
 		return name;
-	}
-
-	public double getX() {
-		return x;
-	}
-
-	public double getY() {
-		return y;
-	}
-
-	public int getZ() {
-		return z;
 	}
 
 	public Set<Commune> getAdjacentCommunes() {

@@ -67,9 +67,8 @@ public class Seed implements ApplicationRunner {
             InputStream file = classLoader.getResourceAsStream("communes.csv");
             br = new BufferedReader(new InputStreamReader(file, "UTF-8"));
             while ((line = br.readLine()) != null) {
-                String data[] = line.split(Constant.CSV_SPLIT_BY);
-                Commune commune = communeRepository.save(new Commune(data[0], data[1], data[2], data[3]));
-                LOGGER.log(Level.INFO,"New commune: " + data[0]);
+                Commune commune = communeRepository.save(new Commune(line));
+                LOGGER.log(Level.INFO,"New commune: " + line);
                 communes.put(commune.getName(), commune);
             }
 
