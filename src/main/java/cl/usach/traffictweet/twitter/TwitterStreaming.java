@@ -18,12 +18,9 @@ import twitter4j.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-//import javax.websocket.Session;
 
 @Component
 public class TwitterStreaming implements ApplicationRunner {
@@ -171,9 +168,10 @@ public class TwitterStreaming implements ApplicationRunner {
 				occurrenceCommune = commune;
 				found = true;
 			}
+			i++;
 		}
 
-		List<String> occurrenceCategories = new ArrayList<String>();
+		List<String> occurrenceCategories = new ArrayList<>();
 		for (Category category : categories) {
 			List<String> keywords = new ArrayList<>();
 			for (Keyword keyword : category.getKeywords())
