@@ -119,7 +119,9 @@ public class Lucene implements ApplicationRunner {
                 Occurrence occurrence = occurrenceRepository.findByTweetId(tweetId);
                 occurrences.add(occurrence);
             }
+
             reader.close();
+            occurrences.sort((o1, o2) -> -o1.getDate().compareTo(o2.getDate()));
         } catch(IOException | ParseException ex) {
             ex.printStackTrace();
         }
