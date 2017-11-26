@@ -48,11 +48,21 @@ public class Util {
         return text;
     }
 
-    public static String getDateString(Date dateTime) {
+    public static Date getDateStart(Date dateTime) {
         Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1;
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        return year + "-" + month + "-" + day;
+        calendar.setTime(dateTime);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return calendar.getTime();
+    }
+
+    public static Date getDateEnd(Date dateTime) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(dateTime);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        return calendar.getTime();
     }
 }

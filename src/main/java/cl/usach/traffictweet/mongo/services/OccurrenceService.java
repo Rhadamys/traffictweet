@@ -5,6 +5,7 @@ import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
 import cl.usach.traffictweet.twitter.Lucene;
 import cl.usach.traffictweet.utils.Constant;
 import cl.usach.traffictweet.utils.Month;
+import cl.usach.traffictweet.utils.Util;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,12 +27,8 @@ public class OccurrenceService {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
     public List<HashMap<String, Object>> getAll() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        List<Occurrence> occurrences = occurrenceRepository.findAllByDateAfterOrderByDateDesc(calendar.getTime());
+        Date today = Util.getDateStart(new Date());
+        List<Occurrence> occurrences = occurrenceRepository.findAllByDateAfterOrderByDateDesc(today);
         return getCalendar(occurrences);
     }
 
@@ -104,13 +101,8 @@ public class OccurrenceService {
     public List<HashMap<String, Object>> findBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(to);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        List<Occurrence> occurrences = occurrenceRepository.findAllByDateBetweenOrderByDateDesc(
-                from, calendar.getTime());
+        to = Util.getDateEnd(to);
+        List<Occurrence> occurrences = occurrenceRepository.findAllByDateBetweenOrderByDateDesc(from, to);
         return getCalendar(occurrences);
     }
 

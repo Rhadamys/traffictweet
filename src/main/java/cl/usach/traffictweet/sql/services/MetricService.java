@@ -4,6 +4,7 @@ import cl.usach.traffictweet.sql.models.*;
 import cl.usach.traffictweet.sql.repositories.CategoryMetricRepository;
 import cl.usach.traffictweet.sql.repositories.CommuneMetricRepository;
 import cl.usach.traffictweet.sql.repositories.MetricRepository;
+import cl.usach.traffictweet.utils.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -28,47 +29,24 @@ public class MetricService {
     private CommuneMetricRepository communeMetricRepository;
 
     @RequestMapping(
-            value = "/categories/today",
-            method = RequestMethod.GET)
-    @ResponseBody
-    public List<CategoryMetric> getAllCategoryMetricsOfToday() {
-        Date today = getTodayDate();
-        return categoryMetricRepository.findAllByMetricDateOrderByCategoryAsc(today);
-    }
-
-    @RequestMapping(
-            value = "/communes/today",
-            method = RequestMethod.GET)
-    @ResponseBody
-    public List<CommuneMetric> getAllCommuneMetricsOfToday() {
-        Date today = getTodayDate();
-        return communeMetricRepository.findAllByMetricDateOrderByCommuneAsc(today);
-    }
-
-    @RequestMapping(
             method = RequestMethod.GET,
             params = { "from", "to" })
     @ResponseBody
     public HashMap<String, Object> getMetricsDashboard(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(to);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        to = calendar.getTime();
+        final Date dateTo = Util.getDateEnd(to);
 
         HashMap<String, Object> dashboard = new HashMap<>();
         List<HashMap<String, Object>> communeMetrics = new ArrayList<>();
-        Map<Commune, Integer> communeSums = getCommuneMetricsSum(from, to);
+        Map<Commune, Integer> communeSums = getCommuneMetricsSum(from, dateTo);
         communeSums.forEach((commune, comCount) -> {
             HashMap<String, Object> communeMetric = new HashMap<>();
             communeMetric.put("commune", commune.getName());
             communeMetric.put("count", comCount);
 
             List<HashMap<String, Object>> categoryMetrics = new ArrayList<>();
-            Map<Category, Integer> categorySums = getMetricsByCommuneSum(commune.getName(), from, calendar.getTime());
+            Map<Category, Integer> categorySums = getMetricsByCommuneSum(commune.getName(), from, dateTo);
             categorySums.forEach((category, catCount) -> {
                 categoryMetrics.add(getCategoryMetricMap(category, catCount));
             });
@@ -78,7 +56,7 @@ public class MetricService {
         });
 
         List<HashMap<String, Object>> categoryMetrics = new ArrayList<>();
-        Map<Category, Integer> categorySums = getCategoryMetricsSum(from, calendar.getTime());
+        Map<Category, Integer> categorySums = getCategoryMetricsSum(from, dateTo);
         categorySums.forEach((category, catCount) -> {
             categoryMetrics.add(getCategoryMetricMap(category, catCount));
         });
@@ -96,14 +74,9 @@ public class MetricService {
             @RequestParam("commune") String commune,
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(to);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-
+        to = Util.getDateEnd(to);
         List<Metric> result = new ArrayList<>();
-        Map<Category, Integer> sums = getMetricsByCommuneSum(commune, from, calendar.getTime());
+        Map<Category, Integer> sums = getMetricsByCommuneSum(commune, from, to);
         sums.forEach((key, value) -> result.add(new Metric(key, value)));
         return result;
     }
@@ -116,15 +89,9 @@ public class MetricService {
     public List<CategoryMetric> getMetricsByCategoriesAndBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(to);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-
-
+        to = Util.getDateEnd(to);
         List<CategoryMetric> result = new ArrayList<>();
-        Map<Category, Integer> sums = getCategoryMetricsSum(from, calendar.getTime());
+        Map<Category, Integer> sums = getCategoryMetricsSum(from, to);
         sums.forEach((key, value) -> result.add(new CategoryMetric(key, value)));
         return result;
     }
@@ -137,19 +104,13 @@ public class MetricService {
     public List<CommuneMetric> getMetricsByCommunesAndBetweenDates(
             @RequestParam("from") @DateTimeFormat(pattern="yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
-        calendar.setTime(to);
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-
+        to = Util.getDateEnd(to);
         List<CommuneMetric> result = new ArrayList<>();
-        Map<Commune, Integer> sums = getCommuneMetricsSum(from, calendar.getTime());
+        Map<Commune, Integer> sums = getCommuneMetricsSum(from, to);
         sums.forEach((key, value) -> result.add(new CommuneMetric(key, value)));
 
         return result;
     }
-
 
     private Map<Category, Integer> getMetricsByCommuneSum(String commune, Date from, Date to) {
         List<Metric> metrics = metricRepository.findAllByCommune_NameAndMetricDateBetweenOrderByCategory(
@@ -178,14 +139,5 @@ public class MetricService {
         categoryMetric.put("category", category.getName());
         categoryMetric.put("count", count);
         return categoryMetric;
-    }
-    private Date getTodayDate(){
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String text = date.format(formatter);
-        LocalDate parsedDate = LocalDate.parse(text, formatter);
-
-        Date finalDate = Date.from(parsedDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        return finalDate;
     }
 }

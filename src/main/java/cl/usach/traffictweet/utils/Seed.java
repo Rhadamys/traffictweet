@@ -1,4 +1,4 @@
-package cl.usach.traffictweet.sql;
+package cl.usach.traffictweet.utils;
 
 import cl.usach.traffictweet.mongo.models.Occurrence;
 import cl.usach.traffictweet.mongo.repositories.OccurrenceRepository;
@@ -6,7 +6,6 @@ import cl.usach.traffictweet.neo4j.Neo4j;
 import cl.usach.traffictweet.sql.models.*;
 import cl.usach.traffictweet.sql.repositories.*;
 import cl.usach.traffictweet.twitter.Lucene;
-import cl.usach.traffictweet.utils.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
