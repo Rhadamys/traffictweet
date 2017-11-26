@@ -38,10 +38,9 @@ export default {
     mounted: function () {
         const today = new Date();
         const year = today.getFullYear();
-        const month = 11;
-        const day = 2;
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
         const date = year + '-' + month + '-' + day;
-
         this.$http.get('http://localhost:9090/metrics?from=' + date + '&to=' + date)
             .then(response => {
                 this.metrics = response.body;

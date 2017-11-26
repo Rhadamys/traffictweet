@@ -49,7 +49,7 @@ public class MetricService {
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(to);
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
         to = calendar.getTime();
@@ -93,7 +93,7 @@ public class MetricService {
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to) {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(to);
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 
@@ -113,7 +113,7 @@ public class MetricService {
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(to);
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 
@@ -134,7 +134,7 @@ public class MetricService {
             @RequestParam("to") @DateTimeFormat(pattern="yyyy-MM-dd") Date to){
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Santiago"));
         calendar.setTime(to);
-        calendar.set(Calendar.HOUR, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
 

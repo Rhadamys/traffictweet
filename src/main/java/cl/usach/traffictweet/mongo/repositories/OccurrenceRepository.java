@@ -9,8 +9,8 @@ import java.util.List;
 public interface OccurrenceRepository extends MongoRepository<Occurrence, String> {
     List<Occurrence> findAllByOrderByDateAsc();
     Occurrence findByTweetId(String tweetId);
+    List<Occurrence> findAllByDateAfterOrderByDateDesc(Date date);
     List<Occurrence> findAllByCategoriesContainsOrderByDateDesc(String category);
     List<Occurrence> findAllByCommuneOrderByDateDesc(String commune);
-    List<Occurrence> findAllByDateAfterOrderByDateDesc(Date date);
     List<Occurrence> findAllByDateBetweenOrderByDateDesc(Date from, Date to);
 }

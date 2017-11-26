@@ -32,7 +32,6 @@ public class OccurrenceService {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         List<Occurrence> occurrences = occurrenceRepository.findAllByDateAfterOrderByDateDesc(calendar.getTime());
-        System.out.println(calendar.getTime());
         return getCalendar(occurrences);
     }
 
@@ -143,6 +142,9 @@ public class OccurrenceService {
             occurrencesFromDate.add(occurrence);
         }
 
+        occurrencesDate.put("date", currentDate);
+        occurrencesDate.put("occurrences", occurrencesFromDate);
+        occurrencesCalendar.add(occurrencesDate);
         return occurrencesCalendar;
     }
 }

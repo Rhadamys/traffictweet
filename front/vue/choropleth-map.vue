@@ -20,7 +20,8 @@ export default {
                 '#41ab5d',
                 '#238b45',
                 '#005a32'
-            ]
+            ],
+            ignore: ['Comuna desconocida', 'Valparaíso', 'Viña del Mar']
         }
     },
     mounted: function() {
@@ -113,11 +114,11 @@ export default {
         // Funciones para mapa coroplético
         setMaxValue: function() {
             let max = 0;
+            const comp = this;
             this.metrics.forEach((metric) => {
                 const count = metric.count;
                 const commune = metric.commune;
-                if(count > max && commune !== 'Valparaíso' && commune !== 'Viña del Mar'
-                    && commune !== 'Comuna desconocida') max = count;
+                if(count > max && !comp.ignore.includes(commune)) max = count;
             });
             this.metrics.max = max;
             this.info.update();
