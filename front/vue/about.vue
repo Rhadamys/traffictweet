@@ -12,10 +12,11 @@
                 <div class="caption text-center">
                     <h2><b>{{ member.name }}</b></h2>
                     <h3>{{ member.role }}</h3>
-                    Universidad de Santiago de Chile
-                    Departamento de Ingeniería Informática
+                    Universidad de Santiago de Chile<br>
+                    Departamento de Ingeniería Informática<br>
                     <a v-bind:href="'mailto:' + member.mail">{{ member.mail }}</a>
                 </div>
+                <div class="footer"></div>
             </div>
         </div>
     </div>
@@ -37,7 +38,7 @@ export default {
                 },
                 {
                     name: "Cristian Sepúlveda",
-                    role: "Back-end",
+                    role: "Encargado área Back-end",
                     mail: "cristian.sepulveda.c@usach.cl"
                 },
                 {

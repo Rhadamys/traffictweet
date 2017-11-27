@@ -18,23 +18,70 @@ body {
     padding-bottom: 2em;
 }
 
+.app-container {
+    height: 100%;
+    width: 95%;
+    margin-left: 5%;
+    padding: 1em;
+    position: fixed;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.full-height {
+    height: 100%;
+    margin-bottom: 0 !important;
+}
+
+.panel-flex {
+    display: flex;
+    flex-direction: column;
+
+    .body {
+        flex-grow: 1;
+        margin-bottom: 0;
+    }
+}
+
+.thumbnail {
+    padding: 0;
+
+    .footer {
+        height: 0.3em;
+        width: 100%;
+        background: $main-color;
+    }
+}
+
 /* Barra de navegación */
-.navbar {
+.sidebar {
     background: $main-color !important;
     border: none;
-    margin-bottom: 1em;
+    position: fixed;
+    height: 100%;
+    width: 5%;
 
     .btn {
-        border: 0.1em solid $accent-color !important;
-        float: left;
-        margin-right: 0.5em;
-        border-radius: 0.5em;
+        width: 100%;
+        font-size: 1.5em;
         color: white;
+        padding-left: 0;
+        padding-right: 0;
+
+        .text {
+            font-size: 0.5em;
+        }
     }
+
     .btn:hover {
         background: $accent-color !important;
         color: white !important;
     }
+
     .btn.active {
         background: $accent-color !important;
         color: white !important;
@@ -159,8 +206,6 @@ body {
 }
 
 .charts {
-    height: 82vh !important;
-
     .dates-header {
         display: flex;
         flex-direction: row;
@@ -189,10 +234,6 @@ body {
     }
 }
 
-.occurrence-container {
-    height: 76vh !important;
-}
-
 .column {
     height: 100% !important;
     display: flex;
@@ -206,10 +247,6 @@ body {
         display: inline-flex;
         flex-direction: column;
     }
-}
-
-.area {
-    height: 100%;
 }
 
 .link {

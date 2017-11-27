@@ -1,66 +1,69 @@
 <template>
     <div class="container">
-        <ol class="breadcrumb">
-            <li><a href="#/">Inicio</a></li>
-            <li><a href="#/panel-tweets">Panel de tweets</a></li>
-            <li class="active">Detalle</li>
-        </ol>
-        <div class="row occurrence-container">
-            <div class="col-md-5 column">
-                <tweet v-bind="occurrence"></tweet>
-                <div class="panel causes bottom">
-                    <div class="panel-heading text-center">
-                        <h4><b>Posibles causas</b></h4>
-                    </div>
-                    <div v-if="causes.length > 0" class="table-responsive" style="overflow-y: auto;">
-                        <table class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>
-                                    <i class="fa fa-calendar" aria-hidden="true"></i> Fecha y hora
-                                </th>
-                                <th>
-                                    <i class="fa fa-map-marker" aria-hidden="true"></i> Comuna
-                                </th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="cause in causes">
-                                <td>{{ cause.date }}</td>
-                                <td>{{ cause.commune.name }}</td>
-                                <td>
-                                    <a class="btn btn-xs btn-default" v-bind:href="'#/occurrences/' + cause.tweetId">
-                                        <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Ver evento
-                                    </a>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="panel-body text-center alert bottom" v-else>
-                        <i class="fa fa-car" aria-hidden="true" style="font-size: 7.5em"></i>
-                        No se han detectado eventos causantes
-                    </div>
+        <div class="col-md-5 panel-flex full-height">
+            <tweet v-bind="occurrence"></tweet>
+            <div class="panel panel-flex causes full-height">
+                <div class="panel-heading text-center">
+                    <h4><b>Eventos relacionados</b></h4>
+                </div>
+                <div v-if="loading" class="body panel-body text-center alert">
+                    <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em"></i>
+                    <br>
+                    <h3>Cargando...</h3>
+                </div>
+                <div v-else-if="causes.length > 0" class="table-responsive" style="overflow-y: auto;">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>
+                                <i class="fa fa-calendar" aria-hidden="true"></i> Fecha y hora
+                            </th>
+                            <th>
+                                <i class="fa fa-map-marker" aria-hidden="true"></i> Comuna
+                            </th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="cause in causes">
+                            <td>{{ cause.date }}</td>
+                            <td>{{ cause.commune.name }}</td>
+                            <td>
+                                <a class="btn btn-xs btn-default" v-bind:href="'#/occurrences/' + cause.tweetId">
+                                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Ver evento
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="body panel-body text-center alert" v-else>
+                    <i class="fa fa-car" aria-hidden="true" style="font-size: 7.5em"></i>
+                    No se han detectado eventos causantes
                 </div>
             </div>
-            <div class="col-md-7 column">
-                <div class="panel area bottom" id="graph">
-                    <div v-if="graph" class="info node-info" id="info">
-                        <b class="text-center">SIMBOLOGÍA</b>
-                        <br><br>
-                        <ul>
-                            <li style="color: #DD1C1A">Evento</li>
-                            <li style="color: #29BF12">Comuna</li>
-                            <li style="color: #FF9914">Usuario</li>
-                        </ul>
-                        Posicione el mouse sobre un nodo para ver mayor información...
-                    </div>
-                    <div class="panel area alert" style="margin-bottom: 0" v-else>
-                        <i class="fa fa-share-alt" aria-hidden="true" style="font-size: 10em"></i>&ensp;
-                        <h3><b>No se pudo cargar el grafo</b></h3>
-                        <h4>El evento no está registrado en la red...</h4>
-                    </div>
+        </div>
+        <div class="col-md-7 full-height">
+            <div class="panel full-height" id="graph">
+                <div v-if="loading" class="panel alert full-height">
+                    <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em"></i>
+                    <br>
+                    <h3>Cargando...</h3>
+                </div>
+                <div v-else-if="graph" class="info node-info" id="info">
+                    <b class="text-center">SIMBOLOGÍA</b>
+                    <br><br>
+                    <ul>
+                        <li style="color: #DD1C1A">Evento</li>
+                        <li style="color: #29BF12">Comuna</li>
+                        <li style="color: #FF9914">Usuario</li>
+                    </ul>
+                    Posicione el mouse sobre un nodo para ver mayor información...
+                </div>
+                <div class="panel alert full-height" v-else>
+                    <i class="fa fa-share-alt" aria-hidden="true" style="font-size: 10em"></i>&ensp;
+                    <h3><b>No se pudo cargar el grafo</b></h3>
+                    <h4>El evento no está registrado en la red...</h4>
                 </div>
             </div>
         </div>
@@ -75,7 +78,8 @@
             return {
                 occurrence: {},
                 causes: [],
-                graph: false
+                graph: false,
+                loading: true
             }
         },
         components: {
@@ -93,6 +97,8 @@
                             this.putGraph();
                         else
                             this.graph = false;
+
+                        this.loading = false;
                     }, response => {
                         console.log('Error cargando evento');
                     });

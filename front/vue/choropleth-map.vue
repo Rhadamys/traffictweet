@@ -1,5 +1,5 @@
 <template>
-    <div id="map" style="z-index: 1" class="panel-body area"></div>
+    <div id="map" style="z-index: 1" class="body"></div>
 </template>
 <script>
 import GeoJSON from './rm.json';

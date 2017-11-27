@@ -1,7 +1,7 @@
 <template>
-    <div class="container">
-        <div class="row charts">
-            <div class="panel col-md-7 area column" style="padding: 0">
+    <div class="container charts">
+        <div class="col-md-7 full-height">
+            <div class="panel panel-flex full-height">
                 <div class="panel-heading" style="padding-bottom: 0">
                     <div class="row">
                         <div class="col-md-9 dates-header">
@@ -25,24 +25,29 @@
                 </div>
                 <choropleth-map v-bind:metrics="metrics.communeMetrics"></choropleth-map>
             </div>
-            <div class="col-md-5 area">
-                <div class="panel panel-default area">
-                    <div class="column chart" v-show="metrics.communeMetrics.length > 0">
-                        <canvas id="chart-categories"></canvas>
-                        <canvas id="chart-communes"></canvas>
-                    </div>
-                    <div class="area alert text-center" v-if="metrics.communeMetrics.length == 0">
-                        <i class="fa fa-pie-chart" aria-hidden="true" style="font-size: 10em;"></i>
-                        <h4 class="text-center"><b>No se han cargado datos</b></h4><br>
-                        <p>
-                            Seleccione un rango de fechas y presione
-                            <b style="border: 1px solid #777777;
+        </div>
+        <div class="col-md-5 full-height">
+            <div class="panel panel-default full-height">
+                <div class="column chart" v-show="!loading && metrics.communeMetrics.length > 0">
+                    <canvas id="chart-categories"></canvas>
+                    <canvas id="chart-communes"></canvas>
+                </div>
+                <div class="alert text-center full-height" v-if="loading">
+                    <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true" style="font-size: 10em;"></i>
+                    <br>
+                    <h3 class="text-center">Cargando...</h3>
+                </div>
+                <div class="alert text-center full-height" v-else-if="metrics.communeMetrics.length == 0">
+                    <i class="fa fa-pie-chart" aria-hidden="true" style="font-size: 10em;"></i>
+                    <h4 class="text-center"><b>No se han cargado datos</b></h4><br>
+                    <p>
+                        Seleccione un rango de fechas y presione
+                        <b style="border: 1px solid #777777;
                                       padding: 0.5em;
                                       border-radius: 0.2em;">
-                                <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Buscar
-                            </b>
-                        </p>
-                    </div>
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Buscar
+                        </b>
+                    </p>
                 </div>
             </div>
         </div>
@@ -90,7 +95,8 @@ export default {
                     to: new Date(2017, 9, 27),
                     from: new Date()
                 }
-            }
+            },
+            loading: false
         }
     },
     components: {
@@ -203,6 +209,7 @@ export default {
             return year + '-' + month + '-' + day;
         },
         updateCharts: function() {
+            this.loading = true;
             const from = this.parseDate(this.fromState.date);
             const to = this.parseDate(this.toState.date);
 
@@ -211,6 +218,7 @@ export default {
                     this.metrics = response.body;
                     this.updateCategoriesChart();
                     this.updateCommunesChart();
+                    this.loading = false;
                 }, response => {
                     console.log('Error cargando lista');
                 });

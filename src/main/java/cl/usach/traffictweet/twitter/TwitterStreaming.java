@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 public class TwitterStreaming implements ApplicationRunner {
 	private final static java.util.logging.Logger LOGGER = Logger.getLogger(TwitterStreaming.class.getName());
 
-	private static final int MAX_LAST_TWEETS = 5;
+	private static final int MAX_LAST_TWEETS = 10;
 
 	private OccurrenceRepository occurrenceRepository;
 	private CategoryRepository categoryRepository;
@@ -95,26 +95,24 @@ public class TwitterStreaming implements ApplicationRunner {
 			public void onStallWarning(StallWarning arg0) {	}
 
 			@Override
-			public void onStatus(Status status) {
+			public synchronized void onStatus(Status status) {
 				// Creating document
 				LOGGER.log(Level.INFO, "Generating document...");
 				boolean isTheSame = false;
-				synchronized (lastTweets) {
-					int i = 0;
-					while(!isTheSame && i < lastTweets.size()) {
-						String tweet = lastTweets.get(i);
-						if(Util.isSameText(status.getText(), tweet)) {
-							LOGGER.log(Level.INFO, "Same detected:\nTweet:\t" + status.getText() + "\nTemp:\t" + tweet);
-							isTheSame = true;
-						}
-						i++;
+				int i = 0;
+				while(!isTheSame && i < lastTweets.size()) {
+					String tweet = lastTweets.get(i);
+					if(Util.isSameText(status.getText(), tweet)) {
+						LOGGER.log(Level.INFO, "Same detected:\nTweet:\t" + status.getText() + "\nTemp:\t" + tweet);
+						isTheSame = true;
 					}
+					i++;
+				}
 
-					if(!isTheSame) {
-						if(lastTweets.size() == MAX_LAST_TWEETS)
-							lastTweets.remove(0);
-						lastTweets.add(status.getText());
-					}
+				if(!isTheSame) {
+					if(lastTweets.size() == MAX_LAST_TWEETS)
+						lastTweets.remove(0);
+					lastTweets.add(status.getText());
 				}
 
 				MatchCase matchCase = isTheSame ?

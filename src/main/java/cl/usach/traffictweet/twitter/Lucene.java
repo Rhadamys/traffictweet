@@ -98,8 +98,11 @@ public class Lucene implements ApplicationRunner {
                 finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
             }
             if(commune.length() > 0) {
-                luceneQuery = new QueryParser(Constant.COMMUNE_FIELD, analyzer).parse(commune);
-                finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
+                String[] communeParts = commune.split(" ");
+                for(String part: communeParts) {
+                    luceneQuery = new QueryParser(Constant.COMMUNE_FIELD, analyzer).parse(part);
+                    finalQuery.add(luceneQuery, BooleanClause.Occur.MUST);
+                }
             }
             if(category.length() > 0) {
                 luceneQuery = new QueryParser(Constant.CATEGORIES_FIELD, analyzer).parse(category);

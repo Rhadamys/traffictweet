@@ -1,9 +1,12 @@
 <template>
     <div class="container">
-        <div class="col-md-10 col-md-offset-1">
-            <div class="panel panel-default" style="height: 80vh">
+        <div class="full-height full-height">
+            <div class="panel panel-default full-height panel-flex">
                 <div class="panel-body">
-                    <div v-if="metrics.categoryMetrics.length > 0" class="reports-heading">
+                    <div v-if="loading" class="text-center">
+                        <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Cargando...
+                    </div>
+                    <div v-else-if="metrics.categoryMetrics.length > 0" class="reports-heading">
                         <b style="padding-right: 1em; margin-right: 1em; border-right: 1px solid #bbbbbb">Reportados hoy</b>
                         <div class="report-item" v-for="metric in metrics.categoryMetrics">
                             {{ metric.category }}: {{ metric.count }}
@@ -28,7 +31,8 @@ export default {
             metrics: {
                 communeMetrics: [],
                 categoryMetrics: []
-            }
+            },
+            loading: true
         }
     },
     components: {
@@ -44,6 +48,7 @@ export default {
         this.$http.get('http://traffictweet.ddns.net:9090/traffictweet/metrics?from=' + date + '&to=' + date)
             .then(response => {
                 this.metrics = response.body;
+                this.loading = false;
             }, response => {
                 console.log('Error cargando lista');
             });
